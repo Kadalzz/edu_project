@@ -2,6 +2,7 @@
 
 import { Users, BookOpen, GraduationCap, TrendingUp, Calendar, Settings, Bell, LogOut, Search, ClipboardList, MessageSquare, FileText, Award, BarChart2, Clock } from "lucide-react"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts'
+import Link from "next/link"
 
 const weeklyData = [
   { name: 'Sun', hadir: 28, tugas: 22, kuis: 18 },
@@ -49,36 +50,36 @@ export default function GuruDashboardClient({ userName }: Props) {
         </div>
         
         <nav className="mt-8 px-4 space-y-2">
-          <a href="#" className="flex items-center px-4 py-3 text-green-600 bg-green-50 rounded-xl shadow-sm">
+          <Link href="/guru/dashboard" className="flex items-center px-4 py-3 text-green-600 bg-green-50 rounded-xl shadow-sm">
             <div className="w-8 h-8 mr-3 bg-green-100 rounded-lg flex items-center justify-center">
               <BookOpen className="w-4 h-4 text-green-600" />
             </div>
             <span className="font-medium">Dashboard</span>
-          </a>
-          <a href="#" className="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
+          </Link>
+          <Link href="/guru/murid" className="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
             <div className="w-8 h-8 mr-3 bg-gray-100 rounded-lg flex items-center justify-center">
               <Users className="w-4 h-4 text-gray-600" />
             </div>
             <span className="font-medium">Daftar Murid</span>
-          </a>
-          <a href="#" className="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
+          </Link>
+          <Link href="/guru/kuis" className="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
             <div className="w-8 h-8 mr-3 bg-gray-100 rounded-lg flex items-center justify-center">
               <ClipboardList className="w-4 h-4 text-gray-600" />
             </div>
             <span className="font-medium">Kuis & Penilaian</span>
-          </a>
-          <a href="#" className="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
+          </Link>
+          <Link href="/guru/materi" className="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
             <div className="w-8 h-8 mr-3 bg-gray-100 rounded-lg flex items-center justify-center">
               <FileText className="w-4 h-4 text-gray-600" />
             </div>
             <span className="font-medium">Materi</span>
-          </a>
-          <a href="#" className="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
+          </Link>
+          <Link href="/guru/chat" className="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
             <div className="w-8 h-8 mr-3 bg-gray-100 rounded-lg flex items-center justify-center">
               <MessageSquare className="w-4 h-4 text-gray-600" />
             </div>
             <span className="font-medium">Chat</span>
-          </a>
+          </Link>
         </nav>
       </aside>
 
