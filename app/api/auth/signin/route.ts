@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
         name: user.name,
         role: user.role
       },
-      process.env.NEXTAUTH_SECRET || "secret-key",
+      process.env.JWT_SECRET || "secret-key",
       { expiresIn: "7d" }
     )
 
@@ -80,7 +80,10 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("Login error:", error)
     return NextResponse.json(
-      { error: "Terjadi kesalahan saat login" },
+      { 
+        error: "Terjadi kesalahan saat login",
+        details: error instanceof Error ? error.message : String(error)
+      },
       { status: 500 }
     )
   }

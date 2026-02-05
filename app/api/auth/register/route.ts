@@ -71,7 +71,10 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("Registration error:", error)
     return NextResponse.json(
-      { error: "Terjadi kesalahan saat registrasi" },
+      { 
+        error: "Terjadi kesalahan saat registrasi",
+        details: error instanceof Error ? error.message : String(error)
+      },
       { status: 500 }
     )
   }
