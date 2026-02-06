@@ -2,7 +2,8 @@
 
 import { Send, Search, Phone, Video, MoreVertical, Paperclip, Smile, Image, FileText, GraduationCap, Users, ClipboardList, MessageSquare, Bell, LogOut, BookOpen, Check, CheckCheck, Circle } from "lucide-react"
 import Link from "next/link"
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
+import { useRouter } from "next/navigation"
 
 const conversations = [
   {
@@ -119,10 +120,40 @@ const messages = [
   },
 ]
 
+const notifications = [
+  { id: 1, title: 'Tugas baru dari Andi Pratama', message: 'Matematika Kelas A', time: '5 menit lalu', unread: true },
+  { id: 2, title: 'Kuis diselesaikan oleh Siti', message: 'Bahasa Indonesia', time: '20 menit lalu', unread: true },
+  { id: 3, title: 'Pesan dari Orang Tua', message: 'Ibu Sarah mengirim pesan', time: '1 jam lalu', unread: false },
+  { id: 4, title: 'Reminder: Meeting', message: 'Meeting dengan wali murid jam 14:00', time: '2 jam lalu', unread: false },
+]
+
 export default function ChatPage() {
   const [selectedConversation, setSelectedConversation] = useState(conversations[0])
   const [newMessage, setNewMessage] = useState("")
   const [searchTerm, setSearchTerm] = useState("")
+  const [showNotifications, setShowNotifications] = useState(false)
+  const notificationRef = useRef<HTMLDivElement>(null)
+  const router = useRouter()
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
+        setShowNotifications(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const handleSignOut = async () => {
+    try {
+      await fetch('/api/auth/signout', { method: 'POST' })
+      router.push('/login')
+    } catch (error) {
+      console.error('Sign out error:', error)
+    }
+  }
 
   const filteredConversations = conversations.filter(c =>
     c.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -191,10 +222,56 @@ export default function ChatPage() {
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold text-gray-800">Pesan</h2>
               <div className="flex items-center space-x-2">
-                <button className="p-2 bg-white rounded-xl hover:bg-gray-100 transition">
-                  <Bell className="w-5 h-5 text-gray-600" />
-                </button>
-                <button className="p-2 bg-white rounded-xl hover:bg-gray-100 transition">
+                {/* Notification Button with Dropdown */}
+                <div className="relative" ref={notificationRef}>
+                  <button 
+                    onClick={() => setShowNotifications(!showNotifications)}
+                    className="p-2 bg-white rounded-xl hover:bg-gray-100 transition relative"
+                  >
+                    <Bell className="w-5 h-5 text-gray-600" />
+                    <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                  </button>
+
+                  {/* Notification Dropdown */}
+                  {showNotifications && (
+                    <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 max-h-96 overflow-y-auto">
+                      <div className="p-4 border-b border-gray-100">
+                        <h3 className="font-semibold text-gray-800">Notifikasi</h3>
+                      </div>
+                      <div className="divide-y divide-gray-100">
+                        {notifications.map((notif) => (
+                          <div 
+                            key={notif.id}
+                            className={`p-4 hover:bg-gray-50 cursor-pointer transition ${notif.unread ? 'bg-blue-50' : ''}`}
+                          >
+                            <div className="flex justify-between items-start mb-1">
+                              <h4 className={`text-sm font-medium ${notif.unread ? 'text-gray-900' : 'text-gray-700'}`}>
+                                {notif.title}
+                              </h4>
+                              {notif.unread && (
+                                <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                              )}
+                            </div>
+                            <p className="text-sm text-gray-600 mb-1">{notif.message}</p>
+                            <p className="text-xs text-gray-400">{notif.time}</p>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="p-3 border-t border-gray-100 text-center">
+                        <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                          Lihat Semua Notifikasi
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Sign Out Button */}
+                <button 
+                  onClick={handleSignOut}
+                  className="p-2 bg-white rounded-xl hover:bg-gray-100 transition"
+                  title="Sign Out"
+                >
                   <LogOut className="w-5 h-5 text-gray-600" />
                 </button>
               </div>
