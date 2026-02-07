@@ -1,97 +1,82 @@
 "use client"
 
-import { Users, Search, Filter, Download, UserPlus, BookOpen, TrendingUp, Award, Calendar, Mail, Phone, MapPin, ChevronRight } from "lucide-react"
-import { useState } from "react"
+import { Users, Search, Filter, Download, UserPlus, BookOpen, TrendingUp, Award, Calendar, Mail, Phone, MapPin, ChevronRight, Trash2, Edit } from "lucide-react"
+import { useState, useEffect } from "react"
 
-const students = [
-  {
-    id: 1,
-    name: "Andi Pratama",
-    class: "Kelas A",
-    nis: "2024001",
-    avatar: "AP",
-    email: "andi@example.com",
-    phone: "081234567890",
-    parent: "Budi Pratama",
-    attendance: 95,
-    avgScore: 85,
-    status: "active",
-    specialNeeds: "Disleksia",
-    joinDate: "Jan 2024"
-  },
-  {
-    id: 2,
-    name: "Siti Nurhaliza",
-    class: "Kelas A",
-    nis: "2024002",
-    avatar: "SN",
-    email: "siti@example.com",
-    phone: "081234567891",
-    parent: "Ahmad Nurdin",
-    attendance: 92,
-    avgScore: 88,
-    status: "active",
-    specialNeeds: "Autisme",
-    joinDate: "Jan 2024"
-  },
-  {
-    id: 3,
-    name: "Budi Santoso",
-    class: "Kelas B",
-    nis: "2024003",
-    avatar: "BS",
-    email: "budi@example.com",
-    phone: "081234567892",
-    parent: "Santoso",
-    attendance: 88,
-    avgScore: 82,
-    status: "active",
-    specialNeeds: "ADHD",
-    joinDate: "Feb 2024"
-  },
-  {
-    id: 4,
-    name: "Dewi Lestari",
-    class: "Kelas B",
-    nis: "2024004",
-    avatar: "DL",
-    email: "dewi@example.com",
-    phone: "081234567893",
-    parent: "Lestari Wati",
-    attendance: 97,
-    avgScore: 90,
-    status: "active",
-    specialNeeds: "Slow Learner",
-    joinDate: "Jan 2024"
-  },
-  {
-    id: 5,
-    name: "Eko Prasetyo",
-    class: "Kelas C",
-    nis: "2024005",
-    avatar: "EP",
-    email: "eko@example.com",
-    phone: "081234567894",
-    parent: "Prasetyo",
-    attendance: 90,
-    avgScore: 86,
-    status: "active",
-    specialNeeds: "Diskalkulia",
-    joinDate: "Feb 2024"
-  }
+interface Student {
+  id: number
+  name: string
+  nis: string
+  avatar: string
+  email: string
+  phone: string
+  parent: string
+  attendance: number
+  avgScore: number
+  status: string
+  specialNeeds: string
+  joinDate: string
+}
+
+const defaultStudents: Student[] = [
+  // Data murid akan bertambah ketika guru menambahkan murid
 ]
 
 export default function DaftarMuridPage() {
+  // Load students from localStorage or use default
+  const [students, setStudents] = useState<Student[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('students')
+      if (saved) {
+        try {
+          return JSON.parse(saved)
+        } catch (e) {
+          console.error('Error parsing students from localStorage:', e)
+        }
+      }
+    }
+    return defaultStudents
+  })
+  
   const [searchQuery, setSearchQuery] = useState("")
-  const [selectedClass, setSelectedClass] = useState("all")
-  const [selectedStudent, setSelectedStudent] = useState<typeof students[0] | null>(null)
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
+  
+  // Save students to localStorage whenever it changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('students', JSON.stringify(students))
+    }
+  }, [students])
 
   const filteredStudents = students.filter(student => {
     const matchSearch = student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                        student.nis.includes(searchQuery)
-    const matchClass = selectedClass === "all" || student.class === selectedClass
-    return matchSearch && matchClass
+    return matchSearch
   })
+  
+  // Calculate statistics
+  const calculateAvgAttendance = () => {
+    if (students.length === 0) return 0
+    const total = students.reduce((sum, s) => sum + s.attendance, 0)
+    return Math.round(total / students.length)
+  }
+  
+  const calculateAvgScore = () => {
+    if (students.length === 0) return 0
+    const total = students.reduce((sum, s) => sum + s.avgScore, 0)
+    return Math.round(total / students.length)
+  }
+  
+  const totalActiveStudents = students.filter(s => s.status === 'active').length
+  const avgAttendance = calculateAvgAttendance()
+  const avgScore = calculateAvgScore()
+  
+  const handleDeleteStudent = (id: number) => {
+    if (confirm("Apakah Anda yakin ingin menghapus data murid ini?")) {
+      setStudents(students.filter(s => s.id !== id))
+      setSelectedStudent(null)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-100 via-blue-100 to-purple-200 p-8">
@@ -127,7 +112,9 @@ export default function DaftarMuridPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Kehadiran Rata-rata</p>
-                  <p className="text-3xl font-bold text-green-600">92%</p>
+                  <p className="text-3xl font-bold text-green-600">
+                    {students.length > 0 ? `${avgAttendance}%` : '-'}
+                  </p>
                 </div>
                 <div className="p-3 bg-green-100 rounded-xl">
                   <Calendar className="w-6 h-6 text-green-600" />
@@ -139,7 +126,9 @@ export default function DaftarMuridPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Nilai Rata-rata</p>
-                  <p className="text-3xl font-bold text-purple-600">86</p>
+                  <p className="text-3xl font-bold text-purple-600">
+                    {students.length > 0 ? avgScore : '-'}
+                  </p>
                 </div>
                 <div className="p-3 bg-purple-100 rounded-xl">
                   <TrendingUp className="w-6 h-6 text-purple-600" />
@@ -150,8 +139,8 @@ export default function DaftarMuridPage() {
             <div className="bg-white/70 backdrop-blur-xl rounded-2xl p-5 shadow-lg">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600 mb-1">Kelas Aktif</p>
-                  <p className="text-3xl font-bold text-orange-600">3</p>
+                  <p className="text-sm text-gray-600 mb-1">Murid Aktif</p>
+                  <p className="text-3xl font-bold text-orange-600">{totalActiveStudents}</p>
                 </div>
                 <div className="p-3 bg-orange-100 rounded-xl">
                   <BookOpen className="w-6 h-6 text-orange-600" />
@@ -172,17 +161,6 @@ export default function DaftarMuridPage() {
                 className="w-full pl-12 pr-4 py-3 bg-white/70 backdrop-blur-sm rounded-2xl border-0 focus:ring-2 focus:ring-green-300"
               />
             </div>
-            
-            <select
-              value={selectedClass}
-              onChange={(e) => setSelectedClass(e.target.value)}
-              className="px-6 py-3 bg-white/70 backdrop-blur-sm rounded-2xl border-0 focus:ring-2 focus:ring-green-300"
-            >
-              <option value="all">Semua Kelas</option>
-              <option value="Kelas A">Kelas A</option>
-              <option value="Kelas B">Kelas B</option>
-              <option value="Kelas C">Kelas C</option>
-            </select>
 
             <button className="px-6 py-3 bg-white/70 backdrop-blur-sm rounded-2xl hover:bg-white/90 transition flex items-center gap-2">
               <Download className="w-5 h-5" />
@@ -199,7 +177,6 @@ export default function DaftarMuridPage() {
                 <tr>
                   <th className="px-6 py-4 text-left text-sm font-semibold">Murid</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold">NIS</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">Kelas</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold">Kebutuhan Khusus</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold">Kehadiran</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold">Nilai Rata-rata</th>
@@ -221,11 +198,6 @@ export default function DaftarMuridPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-gray-700">{student.nis}</td>
-                    <td className="px-6 py-4">
-                      <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
-                        {student.class}
-                      </span>
-                    </td>
                     <td className="px-6 py-4">
                       <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm">
                         {student.specialNeeds}
@@ -276,7 +248,7 @@ export default function DaftarMuridPage() {
                     </div>
                     <div>
                       <h2 className="text-2xl font-bold text-gray-800">{selectedStudent.name}</h2>
-                      <p className="text-gray-600">{selectedStudent.nis} • {selectedStudent.class}</p>
+                      <p className="text-gray-600">NIS: {selectedStudent.nis}</p>
                     </div>
                   </div>
                   <button onClick={() => setSelectedStudent(null)} className="text-gray-400 hover:text-gray-600">
@@ -346,8 +318,18 @@ export default function DaftarMuridPage() {
                   <button className="flex-1 px-6 py-3 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-2xl font-medium hover:shadow-xl transition">
                     Lihat Progress Detail
                   </button>
-                  <button className="px-6 py-3 bg-gray-100 text-gray-700 rounded-2xl font-medium hover:bg-gray-200 transition">
-                    Chat Orang Tua
+                  <button 
+                    onClick={() => handleDeleteStudent(selectedStudent.id)}
+                    className="px-6 py-3 bg-red-500 text-white rounded-2xl font-medium hover:bg-red-600 transition flex items-center gap-2"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                    Hapus
+                  </button>
+                  <button 
+                    onClick={() => setSelectedStudent(null)}
+                    className="px-6 py-3 bg-gray-100 text-gray-700 rounded-2xl font-medium hover:bg-gray-200 transition"
+                  >
+                    Tutup
                   </button>
                 </div>
               </div>
