@@ -79,6 +79,16 @@ interface Quiz {
   dueDate: string
 }
 
+interface Grade {
+  id: number
+  student: string
+  quiz: string
+  score: number
+  class: string
+  date: string
+  status: string
+}
+
 export default function KuisPenilaianPage() {
   // Load initial quiz data from localStorage or use default
   const [quizList, setQuizList] = useState<Quiz[]>(() => {
@@ -96,7 +106,7 @@ export default function KuisPenilaianPage() {
   })
   
   // Load initial grades data from localStorage or use default
-  const [gradesList, setGradesList] = useState(() => {
+  const [gradesList, setGradesList] = useState<Grade[]>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('gradesList')
       if (saved) {
