@@ -357,26 +357,8 @@ export default function ParentDashboardClient({ userName, userId }: Props) {
             {/* Recent Reports */}
             <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-xl p-6">
               <h4 className="font-bold text-gray-800 mb-4">Laporan Terbaru</h4>
-              <div className="space-y-3">
-                {recentReports.map((report, idx) => (
-                  <div key={idx} className={`p-4 rounded-xl ${
-                    report.status === 'new' ? 'bg-orange-50 border-l-4 border-orange-500' : 'bg-gray-50'
-                  }`}>
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="text-sm font-semibold text-gray-800">{report.title}</p>
-                        <p className="text-xs text-gray-600 mt-1">oleh {report.teacher}</p>
-                      </div>
-                      {report.status === 'new' && (
-                        <span className="px-2 py-1 bg-orange-500 text-white text-xs rounded-full">NEW</span>
-                      )}
-                    </div>
-                    <div className="flex items-center mt-2">
-                      <Calendar className="w-3 h-3 text-gray-500 mr-1" />
-                      <p className="text-xs text-gray-600">{report.date}</p>
-                    </div>
-                  </div>
-                ))}
+              <div className="py-8 text-center">
+                <p className="text-sm text-gray-500">Belum ada laporan</p>
               </div>
               <button className="w-full mt-4 py-2 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 transition">
                 Lihat Semua Laporan
@@ -386,22 +368,8 @@ export default function ParentDashboardClient({ userName, userId }: Props) {
             {/* Upcoming Schedule */}
             <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-xl p-6">
               <h4 className="font-bold text-gray-800 mb-4">Jadwal Mendatang</h4>
-              <div className="space-y-3">
-                {upcomingSchedule.map((schedule, idx) => (
-                  <div key={idx} className="flex items-start space-x-3 bg-pink-50 rounded-xl p-3">
-                    <div className="w-12 h-12 bg-pink-500 rounded-lg flex flex-col items-center justify-center text-white flex-shrink-0">
-                      <p className="text-xs font-medium">{schedule.date.split(' ')[0]}</p>
-                      <p className="text-xs">{schedule.date.split(' ')[1]}</p>
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-800">{schedule.event}</p>
-                      <div className="flex items-center mt-1">
-                        <Clock className="w-3 h-3 text-gray-500 mr-1" />
-                        <p className="text-xs text-gray-600">{schedule.time}</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+              <div className="py-8 text-center">
+                <p className="text-sm text-gray-500">Belum ada jadwal</p>
               </div>
             </div>
 
