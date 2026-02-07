@@ -142,36 +142,36 @@ export default function ParentDashboardClient({ userName, userId }: Props) {
         </div>
         
         <nav className="mt-8 px-4 space-y-2">
-          <a href="#" className="flex items-center px-4 py-3 text-orange-600 bg-orange-50 rounded-xl shadow-sm">
+          <Link href="/parent/dashboard" className="flex items-center px-4 py-3 text-orange-600 bg-orange-50 rounded-xl shadow-sm">
             <div className="w-8 h-8 mr-3 bg-orange-100 rounded-lg flex items-center justify-center">
               <BookOpen className="w-4 h-4 text-orange-600" />
             </div>
             <span className="font-medium">Dashboard</span>
-          </a>
-          <a href="#" className="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
+          </Link>
+          <Link href="/parent/anak-saya" className="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
             <div className="w-8 h-8 mr-3 bg-gray-100 rounded-lg flex items-center justify-center">
               <User className="w-4 h-4 text-gray-600" />
             </div>
             <span className="font-medium">Anak Saya</span>
-          </a>
-          <a href="#" className="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
+          </Link>
+          <Link href="/parent/laporan" className="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
             <div className="w-8 h-8 mr-3 bg-gray-100 rounded-lg flex items-center justify-center">
               <FileText className="w-4 h-4 text-gray-600" />
             </div>
             <span className="font-medium">Laporan Belajar</span>
-          </a>
-          <a href="#" className="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
+          </Link>
+          <Link href="/parent/chat" className="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
             <div className="w-8 h-8 mr-3 bg-gray-100 rounded-lg flex items-center justify-center">
               <MessageSquare className="w-4 h-4 text-gray-600" />
             </div>
             <span className="font-medium">Chat Guru</span>
-          </a>
-          <a href="#" className="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
+          </Link>
+          <Link href="/parent/jadwal" className="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
             <div className="w-8 h-8 mr-3 bg-gray-100 rounded-lg flex items-center justify-center">
               <Calendar className="w-4 h-4 text-gray-600" />
             </div>
             <span className="font-medium">Jadwal Temu</span>
-          </a>
+          </Link>
         </nav>
 
         <div className="absolute bottom-6 left-6 right-6">
