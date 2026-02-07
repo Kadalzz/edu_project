@@ -356,6 +356,22 @@ export default function ParentDashboardClient({ userName, userId }: Props) {
                       <YAxis stroke="#9ca3af" style={{ fontSize: '12px' }} />
                       <Tooltip />
                       <Legend />
+                      <Line type="monotone" dataKey="nilai" stroke="#f97316" strokeWidth={2} name="Nilai" />
+                      <Line type="monotone" dataKey="tugas" stroke="#8b5cf6" strokeWidth={2} name="Tugas" />
+                      <Line type="monotone" dataKey="kehadiran" stroke="#10b981" strokeWidth={2} name="Kehadiran" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              ) : (
+                <div className="h-64 flex items-center justify-center text-gray-500">
+                  Belum ada data progress
+                </div>
+              )}
+            </div>
+
+            {/* Skills Radar */}
+            <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-xl p-6">
+              <h3 className="text-lg font-bold text-gray-800 mb-6">Kemampuan per Mata Pelajaran</h3>
               {selectedChild && skillsData.length > 0 ? (
                 <div className="h-80">
                   <ResponsiveContainer width="100%" height="100%">
@@ -374,37 +390,21 @@ export default function ParentDashboardClient({ userName, userId }: Props) {
                 </div>
               )}
             </div>
-
-            {/* Skills Radar */}
-            <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-xl p-6">
-              <h3 className="text-lg font-bold text-gray-800 mb-6">Kemampuan per Mata Pelajaran</h3>
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <RadarChart data={skillsData}>
-                    <PolarGrid stroke="#e5e7eb" />
-                    <PolarAngleAxis dataKey="subject" style={{ fontSize: '12px' }} />
-                    <PolarRadiusAxis angle={90} domain={[0, 100]} />
-                    <Radar name="Nilai" dataKey="nilai" stroke="#f97316" fill="#f97316" fillOpacity={0.6} />
-                    <Tooltip />
-                  </RadarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
           </div>
 
           {/* Right Column */}
-          <div className="space-y-6">{selectedChild?.badges || 0}</p>
+          <div className="space-y-6">
+            {/* Quick Stats */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl p-4 text-center shadow-lg">
+                <Award className="w-6 h-6 text-yellow-600 mx-auto mb-2" />
+                <p className="text-xs text-blue-600 font-medium mb-1">Achievement</p>
+                <p className="text-2xl font-bold text-blue-700">{selectedChild?.badges || 0}</p>
               </div>
               <div className="bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl p-4 text-center shadow-lg">
                 <MessageSquare className="w-6 h-6 text-blue-600 mx-auto mb-2" />
                 <p className="text-xs text-blue-600 font-medium mb-1">Pesan Guru</p>
-                <p className="text-2xl font-bold text-blue-700">0mb-1">Achievement</p>
-                <p className="text-2xl font-bold text-green-700">18</p>
-              </div>
-              <div className="bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl p-4 text-center shadow-lg">
-                <MessageSquare className="w-6 h-6 text-blue-600 mx-auto mb-2" />
-                <p className="text-xs text-blue-600 font-medium mb-1">Pesan Guru</p>
-                <p className="text-2xl font-bold text-blue-700">3</p>
+                <p className="text-2xl font-bold text-blue-700">0</p>
               </div>
             </div>
 

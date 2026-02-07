@@ -61,7 +61,7 @@ export async function GET(request: Request) {
     const transformedChildren = children.map((child: any) => {
       // Calculate attendance percentage
       const totalAbsensi = child.absensi.length
-      const hadirCount = child.absensi.filter((a: any) => a.status === 'hadir').length
+      const hadirCount = child.absensi.filter((a: any) => a.status === 'HADIR').length
       const attendancePercentage = totalAbsensi > 0 
         ? Math.round((hadirCount / totalAbsensi) * 100)
         : 0
@@ -95,7 +95,7 @@ export async function GET(request: Request) {
         })),
         recentQuizzes: child.hasilKuis.slice(0, 5).map((h: any) => ({
           title: h.kuis.judul,
-          score: h.nilai,
+          score: h.skor,
           date: h.createdAt.toISOString()
         })),
         weeklyAttendance: child.absensi.slice(0, 7).map((a: any) => ({

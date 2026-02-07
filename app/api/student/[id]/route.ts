@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import prisma from '@/lib/prisma'
 
 export async function GET(
   request: Request,
@@ -60,7 +60,7 @@ export async function GET(
 
     // Calculate statistics
     const totalAbsensi = student.absensi.length
-    const hadirCount = student.absensi.filter(a => a.status === 'hadir').length
+    const hadirCount = student.absensi.filter(a => a.status === 'HADIR').length
     const attendancePercentage = totalAbsensi > 0 
       ? Math.round((hadirCount / totalAbsensi) * 100)
       : 0
@@ -76,7 +76,7 @@ export async function GET(
     // Get pending quizzes (quizzes not yet taken)
     const allQuizzes = await prisma.kuis.findMany({
       where: {
-        status: 'active'
+        status: 'ACTIVE'
       }
     })
     const takenQuizIds = student.hasilKuis.map(h => h.kuisId)
@@ -107,8 +107,8 @@ export async function GET(
         recentQuizzes: student.hasilKuis.slice(0, 10).map(h => ({
           id: h.id,
           title: h.kuis.judul,
-          score: h.nilai,
-          passed: h.nilai >= 60,
+          score: h.skor,
+          passed: h.skor >= 60,
           date: h.createdAt.toISOString()
         })),
         weeklyAttendance: student.absensi.slice(0, 7).map(a => ({
