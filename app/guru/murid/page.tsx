@@ -5,6 +5,7 @@ import { useState, useEffect } from "react"
 
 interface Student {
   id: number
+  originalId: string // Store the actual cuid from database
   name: string
   nis: string
   avatar: string
@@ -23,30 +24,67 @@ const defaultStudents: Student[] = [
 ]
 
 export default function DaftarMuridPage() {
-  // Load students from localStorage or use default
-  const [students, setStudents] = useState<Student[]>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('students')
-      if (saved) {
-        try {
-          return JSON.parse(saved)
-        } catch (e) {
-          console.error('Error parsing students from localStorage:', e)
-        }
-      }
-    }
-    return defaultStudents
-  })
-  
+  const [students, setStudents] = useState<Student[]>([])
+  const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
   
-  // Save students to localStorage whenever it changes
+  // Fetch students from database
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('students', JSON.stringify(students))
+    fetchStudents()
+  }, [])
+  
+  const fetchStudents = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch('/api/siswa')
+      const result = await response.json()
+      
+      if (result.success && result.data) {
+        // Transform database format to UI format
+        const transformedStudents: Student[] = result.data.map((siswa: any) => {
+          // Calculate attendance percentage from absensi data
+          let attendance = 100 // default
+          if (siswa.absensi && siswa.absensi.length > 0) {
+            const hadirCount = siswa.absensi.filter((a: any) => a.status === 'hadir').length
+            attendance = Math.round((hadirCount / siswa.absensi.length) * 100)
+          }
+          
+          // Calculate average score from nilai data
+          let avgScore = 0
+          if (siswa.nilai && siswa.nilai.length > 0) {
+            const totalNilai = siswa.nilai.reduce((sum: number, n: any) => sum + n.nilai, 0)
+            avgScore = Math.round(totalNilai / siswa.nilai.length)
+          }
+          
+          // Generate avatar initials from name
+          const initials = siswa.nama.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
+          
+          return {
+            id: parseInt(siswa.id.slice(-8), 36), // Convert cuid to number for UI
+            originalId: siswa.id, // Store original cuid for API calls
+            name: siswa.nama,
+            nis: siswa.nis || '-',
+            avatar: initials,
+            email: siswa.parent?.email || '-',
+            phone: siswa.catatan?.includes('Telepon') ? siswa.catatan.replace('No. Telepon: ', '') : '-',
+            parent: siswa.parent?.name || '-',
+            attendance,
+            avgScore,
+            status: 'active', // All registered students are active
+            specialNeeds: siswa.kebutuhanKhusus || '-',
+            joinDate: new Date(siswa.createdAt).toLocaleDateString('id-ID')
+          }
+        })
+        
+        setStudents(transformedStudents)
+      }
+    } catch (error) {
+      console.error('Error fetching students:', error)
+    } finally {
+      setLoading(false)
     }
-  }, [students])
+  }
 
   const filteredStudents = students.filter(student => {
     const matchSearch = student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -71,10 +109,30 @@ export default function DaftarMuridPage() {
   const avgAttendance = calculateAvgAttendance()
   const avgScore = calculateAvgScore()
   
-  const handleDeleteStudent = (id: number) => {
-    if (confirm("Apakah Anda yakin ingin menghapus data murid ini?")) {
-      setStudents(students.filter(s => s.id !== id))
-      setSelectedStudent(null)
+  const handleDeleteStudent = async (id: number) => {
+    const student = students.find(s => s.id === id)
+    if (!student) return
+    
+    if (confirm(`Apakah Anda yakin ingin menghapus data murid ${student.name}?`)) {
+      try {
+        const response = await fetch(`/api/siswa/${student.originalId}`, {
+          method: 'DELETE',
+        })
+        
+        const result = await response.json()
+        
+        if (result.success) {
+          // Remove from UI state
+          setStudents(students.filter(s => s.id !== id))
+          setSelectedStudent(null)
+          alert('Data murid berhasil dihapus')
+        } else {
+          alert('Gagal menghapus data murid: ' + (result.error || 'Unknown error'))
+        }
+      } catch (error) {
+        console.error('Error deleting student:', error)
+        alert('Terjadi kesalahan saat menghapus data murid')
+      }
     }
   }
 
@@ -184,7 +242,33 @@ export default function DaftarMuridPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {filteredStudents.map((student) => (
+                {loading ? (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-12 text-center">
+                      <div className="flex flex-col items-center gap-2">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+                        <p className="text-gray-500">Memuat data murid...</p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : filteredStudents.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-12 text-center">
+                      <div className="flex flex-col items-center gap-2">
+                        <Users className="w-12 h-12 text-gray-400" />
+                        <p className="text-gray-500">
+                          {searchQuery ? 'Tidak ada murid yang sesuai dengan pencarian' : 'Belum ada data murid'}
+                        </p>
+                        {!searchQuery && (
+                          <p className="text-sm text-gray-400 mt-2">
+                            Murid akan otomatis muncul ketika orang tua mendaftar
+                          </p>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredStudents.map((student) => (
                   <tr key={student.id} className="hover:bg-white/50 transition">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -230,7 +314,7 @@ export default function DaftarMuridPage() {
                       </button>
                     </td>
                   </tr>
-                ))}
+                )))}
               </tbody>
             </table>
           </div>
