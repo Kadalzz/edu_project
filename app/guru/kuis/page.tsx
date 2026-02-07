@@ -64,6 +64,15 @@ const notifications = [
   { id: 4, title: 'Reminder: Meeting', message: 'Meeting dengan wali murid jam 14:00', time: '2 jam lalu', unread: false },
 ]
 
+interface QuizQuestion {
+  id: number
+  question: string
+  type: 'multiple-choice' | 'essay' | 'true-false'
+  options?: string[]
+  correctAnswer?: string | number
+  points: number
+}
+
 interface Quiz {
   id: number
   title: string
@@ -77,6 +86,7 @@ interface Quiz {
   status: string
   createdAt: string
   dueDate: string
+  questionsList?: QuizQuestion[]
 }
 
 interface Grade {
@@ -128,8 +138,10 @@ export default function KuisPenilaianPage() {
   const [showEditModal, setShowEditModal] = useState(false)
   const [showDetailModal, setShowDetailModal] = useState(false)
   const [showGradeModal, setShowGradeModal] = useState(false)
+  const [showQuestionsModal, setShowQuestionsModal] = useState(false)
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null)
   const [selectedGrade, setSelectedGrade] = useState<any>(null)
+  const [editingQuestion, setEditingQuestion] = useState<QuizQuestion | null>(null)
   
   const notificationRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
@@ -142,6 +154,15 @@ export default function KuisPenilaianPage() {
     questions: 10,
     duration: 30,
     dueDate: ""
+  })
+  
+  // Form state for questions
+  const [questionForm, setQuestionForm] = useState({
+    question: "",
+    type: 'multiple-choice' as 'multiple-choice' | 'essay' | 'true-false',
+    options: ["", "", "", ""],
+    correctAnswer: 0,
+    points: 10
   })
 
   // Save quizList to localStorage whenever it changes
@@ -232,6 +253,74 @@ export default function KuisPenilaianPage() {
     if (confirm("Apakah Anda yakin ingin menghapus data nilai ini?")) {
       setGradesList(gradesList.filter(grade => grade.id !== gradeId))
     }
+  }
+  
+  const openQuestionsModal = (quiz: Quiz) => {
+    setSelectedQuiz(quiz)
+    setShowQuestionsModal(true)
+  }
+  
+  const handleAddQuestion = () => {
+    if (!selectedQuiz || !questionForm.question) {
+      alert("Mohon isi pertanyaan")
+      return
+    }
+    
+    const newQuestion: QuizQuestion = {
+      id: (selectedQuiz.questionsList?.length || 0) + 1,
+      question: questionForm.question,
+      type: questionForm.type,
+      options: questionForm.type === 'multiple-choice' ? questionForm.options : undefined,
+      correctAnswer: questionForm.type === 'multiple-choice' ? questionForm.correctAnswer : undefined,
+      points: questionForm.points
+    }
+    
+    const updatedQuizzes = quizList.map(quiz => 
+      quiz.id === selectedQuiz.id 
+        ? { 
+            ...quiz, 
+            questionsList: [...(quiz.questionsList || []), newQuestion],
+            questions: (quiz.questionsList?.length || 0) + 1 
+          }
+        : quiz
+    )
+    
+    setQuizList(updatedQuizzes)
+    setSelectedQuiz({
+      ...selectedQuiz,
+      questionsList: [...(selectedQuiz.questionsList || []), newQuestion],
+      questions: (selectedQuiz.questionsList?.length || 0) + 1
+    })
+    
+    // Reset form
+    setQuestionForm({
+      question: "",
+      type: 'multiple-choice',
+      options: ["", "", "", ""],
+      correctAnswer: 0,
+      points: 10
+    })
+  }
+  
+  const handleDeleteQuestion = (questionId: number) => {
+    if (!selectedQuiz || !confirm("Hapus soal ini?")) return
+    
+    const updatedQuizzes = quizList.map(quiz => 
+      quiz.id === selectedQuiz.id 
+        ? { 
+            ...quiz, 
+            questionsList: quiz.questionsList?.filter(q => q.id !== questionId),
+            questions: (quiz.questionsList?.length || 1) - 1
+          }
+        : quiz
+    )
+    
+    setQuizList(updatedQuizzes)
+    setSelectedQuiz({
+      ...selectedQuiz,
+      questionsList: selectedQuiz.questionsList?.filter(q => q.id !== questionId),
+      questions: (selectedQuiz.questionsList?.length || 1) - 1
+    })
   }
 
   const openEditModal = (quiz: Quiz) => {
@@ -954,12 +1043,24 @@ export default function KuisPenilaianPage() {
                   </div>
                 </div>
 
-                <button 
-                  onClick={() => { setShowDetailModal(false); setSelectedQuiz(null); }}
-                  className="w-full px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-medium hover:shadow-xl transition"
-                >
-                  Tutup
-                </button>
+                <div className="flex gap-3">
+                  <button 
+                    onClick={() => {
+                      setShowDetailModal(false)
+                      openQuestionsModal(selectedQuiz)
+                    }}
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-medium hover:shadow-xl transition flex items-center justify-center gap-2"
+                  >
+                    <ClipboardList className="w-5 h-5" />
+                    Kelola Soal
+                  </button>
+                  <button 
+                    onClick={() => { setShowDetailModal(false); setSelectedQuiz(null); }}
+                    className="flex-1 px-6 py-3 bg-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-300 transition"
+                  >
+                    Tutup
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -1021,6 +1122,191 @@ export default function KuisPenilaianPage() {
                   className="w-full px-6 py-3 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-xl font-medium hover:shadow-xl transition"
                 >
                   Tutup
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Modal: Manage Questions */}
+        {showQuestionsModal && selectedQuiz && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <div className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="sticky top-0 bg-gradient-to-r from-blue-500 to-purple-500 p-6 rounded-t-3xl">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold text-white">Kelola Soal Kuis</h2>
+                    <p className="text-white/80 text-sm">{selectedQuiz.title}</p>
+                  </div>
+                  <button 
+                    onClick={() => { setShowQuestionsModal(false); setSelectedQuiz(null); }}
+                    className="p-2 hover:bg-white/20 rounded-full transition"
+                  >
+                    <X className="w-6 h-6 text-white" />
+                  </button>
+                </div>
+              </div>
+              
+              <div className="p-6 space-y-6">
+                {/* Add Question Form */}
+                <div className="bg-gradient-to-br from-blue-50 to-purple-50 p-6 rounded-2xl border-2 border-blue-200">
+                  <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <Plus className="w-5 h-5" />
+                    Tambah Soal Baru
+                  </h3>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Tipe Soal</label>
+                      <select
+                        value={questionForm.type}
+                        onChange={(e) => setQuestionForm({...questionForm, type: e.target.value as any})}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="multiple-choice">Pilihan Ganda</option>
+                        <option value="essay">Essay</option>
+                        <option value="true-false">Benar/Salah</option>
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Pertanyaan</label>
+                      <textarea
+                        value={questionForm.question}
+                        onChange={(e) => setQuestionForm({...questionForm, question: e.target.value})}
+                        placeholder="Ketik pertanyaan di sini..."
+                        rows={3}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    
+                    {questionForm.type === 'multiple-choice' && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Pilihan Jawaban</label>
+                        <div className="space-y-2">
+                          {questionForm.options.map((option, idx) => (
+                            <div key={idx} className="flex items-center gap-2">
+                              <input
+                                type="radio"
+                                name="correctAnswer"
+                                checked={questionForm.correctAnswer === idx}
+                                onChange={() => setQuestionForm({...questionForm, correctAnswer: idx})}
+                                className="w-5 h-5 text-blue-600"
+                              />
+                              <input
+                                type="text"
+                                value={option}
+                                onChange={(e) => {
+                                  const newOptions = [...questionForm.options]
+                                  newOptions[idx] = e.target.value
+                                  setQuestionForm({...questionForm, options: newOptions})
+                                }}
+                                placeholder={`Pilihan ${String.fromCharCode(65 + idx)}`}
+                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                        <p className="text-xs text-gray-500 mt-2">* Pilih radio button untuk jawaban yang benar</p>
+                      </div>
+                    )}
+                    
+                    <div className="flex gap-4">
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Poin</label>
+                        <input
+                          type="number"
+                          value={questionForm.points}
+                          onChange={(e) => setQuestionForm({...questionForm, points: parseInt(e.target.value) || 10})}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div className="flex items-end">
+                        <button
+                          onClick={handleAddQuestion}
+                          className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-medium hover:shadow-xl transition flex items-center gap-2"
+                        >
+                          <Plus className="w-5 h-5" />
+                          Tambah Soal
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Questions List */}
+                <div>
+                  <h3 className="text-lg font-bold text-gray-800 mb-4">
+                    Daftar Soal ({selectedQuiz.questionsList?.length || 0})
+                  </h3>
+                  
+                  {(!selectedQuiz.questionsList || selectedQuiz.questionsList.length === 0) ? (
+                    <div className="text-center py-12 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-300">
+                      <ClipboardList className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-500 text-lg">Belum ada soal</p>
+                      <p className="text-gray-400 text-sm">Gunakan form di atas untuk menambah soal</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {selectedQuiz.questionsList?.map((q, idx) => (
+                        <div key={q.id} className="bg-white border-2 border-gray-200 rounded-2xl p-5 hover:border-blue-300 transition">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex items-start gap-3 flex-1">
+                              <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">
+                                {idx + 1}
+                              </div>
+                              <div className="flex-1">
+                                <p className="font-medium text-gray-800 mb-2">{q.question}</p>
+                                <div className="flex items-center gap-2 text-sm">
+                                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                                    q.type === 'multiple-choice' ? 'bg-blue-100 text-blue-700' :
+                                    q.type === 'essay' ? 'bg-purple-100 text-purple-700' :
+                                    'bg-green-100 text-green-700'
+                                  }`}>
+                                    {q.type === 'multiple-choice' ? 'Pilihan Ganda' :
+                                     q.type === 'essay' ? 'Essay' : 'Benar/Salah'}
+                                  </span>
+                                  <span className="text-gray-500">•</span>
+                                  <span className="text-gray-600 font-medium">{q.points} poin</span>
+                                </div>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => handleDeleteQuestion(q.id)}
+                              className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition"
+                            >
+                              <Trash2 className="w-5 h-5" />
+                            </button>
+                          </div>
+                          
+                          {q.type === 'multiple-choice' && q.options && (
+                            <div className="ml-11 space-y-2">
+                              {q.options.map((opt, optIdx) => (
+                                <div key={optIdx} className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
+                                  q.correctAnswer === optIdx ? 'bg-green-50 border border-green-200' : 'bg-gray-50'
+                                }`}>
+                                  <span className="font-medium text-gray-600">{String.fromCharCode(65 + optIdx)}.</span>
+                                  <span className={q.correctAnswer === optIdx ? 'text-green-700 font-medium' : 'text-gray-700'}>
+                                    {opt}
+                                  </span>
+                                  {q.correctAnswer === optIdx && (
+                                    <CheckCircle className="w-4 h-4 text-green-600 ml-auto" />
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                
+                <button 
+                  onClick={() => { setShowQuestionsModal(false); setSelectedQuiz(null); }}
+                  className="w-full px-6 py-3 bg-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-300 transition"
+                >
+                  Selesai
                 </button>
               </div>
             </div>
