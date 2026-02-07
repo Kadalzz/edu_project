@@ -9,6 +9,7 @@ export default function RegisterPage() {
   const router = useRouter()
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const [selectedRole, setSelectedRole] = useState("")
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -16,12 +17,22 @@ export default function RegisterPage() {
     setLoading(true)
 
     const formData = new FormData(e.currentTarget)
-    const data = {
+    const data: any = {
       name: formData.get("name") as string,
       email: formData.get("email") as string,
       password: formData.get("password") as string,
       confirmPassword: formData.get("confirmPassword") as string,
       role: formData.get("role") as string,
+    }
+    
+    // Add student data if role is PARENT
+    if (data.role === "PARENT") {
+      data.studentData = {
+        studentName: formData.get("studentName") as string,
+        nis: formData.get("nis") as string,
+        phone: formData.get("phone") as string,
+        specialNeeds: formData.get("specialNeeds") as string,
+      }
     }
 
     // Validation
@@ -119,6 +130,8 @@ export default function RegisterPage() {
                 id="role"
                 name="role"
                 required
+                value={selectedRole}
+                onChange={(e) => setSelectedRole(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
               >
                 <option value="">Pilih role</option>
@@ -126,9 +139,84 @@ export default function RegisterPage() {
                 <option value="GURU">Guru</option>
               </select>
               <p className="mt-1 text-xs text-gray-500">
-                Admin akan dibuat oleh sistem administrator
+                {selectedRole === "PARENT" ? "Anda akan mendaftarkan anak Anda sebagai murid" : "Admin akan dibuat oleh sistem administrator"}
               </p>
             </div>
+            
+            {/* Student Data Fields - Only show if PARENT */}
+            {selectedRole === "PARENT" && (
+              <>
+                <div className="border-t border-gray-200 pt-4">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Data Murid</h3>
+                </div>
+                
+                <div>
+                  <label htmlFor="studentName" className="block text-sm font-medium text-gray-700 mb-2">
+                    Nama Murid <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    id="studentName"
+                    name="studentName"
+                    type="text"
+                    required={selectedRole === "PARENT"}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                    placeholder="Nama lengkap murid"
+                  />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="nis" className="block text-sm font-medium text-gray-700 mb-2">
+                      NIS <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      id="nis"
+                      name="nis"
+                      type="text"
+                      required={selectedRole === "PARENT"}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                      placeholder="Nomor Induk Siswa"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+                      No. Telepon <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      id="phone"
+                      name="phone"
+                      type="tel"
+                      required={selectedRole === "PARENT"}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                      placeholder="08123456789"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label htmlFor="specialNeeds" className="block text-sm font-medium text-gray-700 mb-2">
+                    Kebutuhan Khusus <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    id="specialNeeds"
+                    name="specialNeeds"
+                    required={selectedRole === "PARENT"}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                  >
+                    <option value="">Pilih kebutuhan khusus</option>
+                    <option value="Autisme">Autisme</option>
+                    <option value="ADHD">ADHD</option>
+                    <option value="Disleksia">Disleksia</option>
+                    <option value="Diskalkulia">Diskalkulia</option>
+                    <option value="Down Syndrome">Down Syndrome</option>
+                    <option value="Slow Learner">Slow Learner</option>
+                    <option value="Cerebral Palsy">Cerebral Palsy</option>
+                    <option value="Lainnya">Lainnya</option>
+                  </select>
+                </div>
+              </>
+            )}
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">

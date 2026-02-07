@@ -5,7 +5,7 @@ import prisma from "@/lib/prisma"
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const { name, email, password, role } = body
+    const { name, email, password, role, studentData } = body
 
     // Validation
     if (!name || !email || !password || !role) {
@@ -22,6 +22,16 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    // Validate student data if role is PARENT
+    if (role === "PARENT") {
+      if (!studentData || !studentData.studentName || !studentData.nis || !studentData.phone || !studentData.specialNeeds) {
+        return NextResponse.json(
+          { error: "Data murid harus dilengkapi untuk pendaftaran orang tua" },
+          { status: 400 }
+        )
+      }
+    }
+
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
       where: { email },
@@ -32,6 +42,20 @@ export async function POST(req: NextRequest) {
         { error: "Email sudah terdaftar" },
         { status: 400 }
       )
+    }
+
+    // Check if NIS already exists (for PARENT role)
+    if (role === "PARENT" && studentData?.nis) {
+      const existingNIS = await prisma.siswa.findUnique({
+        where: { nis: studentData.nis },
+      })
+
+      if (existingNIS) {
+        return NextResponse.json(
+          { error: "NIS sudah terdaftar" },
+          { status: 400 }
+        )
+      }
     }
 
     // Hash password
@@ -52,6 +76,48 @@ export async function POST(req: NextRequest) {
       await prisma.guru.create({
         data: {
           userId: user.id,
+        },
+      })
+    }
+
+    // If role is PARENT, create Siswa profile
+    if (role === "PARENT" && studentData) {
+      // Get or create default class
+      let defaultClass = await prisma.kelas.findFirst({
+        orderBy: { createdAt: 'asc' },
+      })
+
+      // If no class exists, we need to find a guru to create default class
+      if (!defaultClass) {
+        const firstGuru = await prisma.guru.findFirst()
+        
+        if (firstGuru) {
+          // Create a default class with first guru
+          defaultClass = await prisma.kelas.create({
+            data: {
+              nama: "Kelas Utama",
+              tahunAjaran: new Date().getFullYear().toString(),
+              guruId: firstGuru.id,
+              deskripsi: "Kelas default untuk semua siswa",
+            },
+          })
+        } else {
+          return NextResponse.json(
+            { error: "Belum ada guru terdaftar. Mohon hubungi administrator." },
+            { status: 400 }
+          )
+        }
+      }
+
+      // Create student profile
+      await prisma.siswa.create({
+        data: {
+          nama: studentData.studentName,
+          nis: studentData.nis,
+          kelasId: defaultClass.id,
+          parentId: user.id,
+          kebutuhanKhusus: studentData.specialNeeds,
+          catatan: `No. Telepon: ${studentData.phone}`,
         },
       })
     }
