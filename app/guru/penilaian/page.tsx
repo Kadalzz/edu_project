@@ -343,18 +343,18 @@ export default function PenilaianPage() {
                                 }`}>
                                   {currentGrade > 0 ? currentGrade : '-'}
                                 </div>
-                              )}ccumulation(student.id) === 0 ? 'bg-gray-100 text-gray-400' :
+                              )}
+                            </td>
+                          )
+                        })}
+                        <td className="px-4 py-3 text-center border border-gray-200">
+                          <div className={`inline-block px-4 py-2 rounded-lg font-bold ${
+                            calculateAccumulation(student.id) === 0 ? 'bg-gray-100 text-gray-400' :
                             'bg-blue-100 text-blue-700'
                           }`}>
                             {calculateAccumulation(student.id) > 0 ? calculateAccumulation(student.id) : '-'}
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-center border border-gray-200">
-                          <div className={`inline-block px-4 py-2 rounded-lg font-bold ${
-                            calculateA
-                            </td>
-                          )
-                        })}
                         <td className="px-4 py-3 text-center border border-gray-200">
                           <div className={`inline-block px-4 py-2 rounded-lg font-bold ${
                             calculateAverage(student.id) === 0 ? 'bg-gray-100 text-gray-400' :
