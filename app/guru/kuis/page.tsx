@@ -50,11 +50,11 @@ const quizzes = [
   }
 ]
 
-const recentGrades = [
-  { student: "Andi Pratama", quiz: "Matematika Dasar", score: 90, class: "Kelas A", date: "3 Feb", status: "excellent" },
-  { student: "Siti Nurhaliza", quiz: "Membaca Pemahaman", score: 85, class: "Kelas B", date: "3 Feb", status: "good" },
-  { student: "Budi Santoso", quiz: "Matematika Dasar", score: 75, class: "Kelas A", date: "2 Feb", status: "good" },
-  { student: "Dewi Lestari", quiz: "Membaca Pemahaman", score: 92, class: "Kelas B", date: "2 Feb", status: "excellent" },
+const defaultGrades = [
+  { id: 1, student: "Andi Pratama", quiz: "Matematika Dasar", score: 90, class: "Kelas A", date: "3 Feb", status: "excellent" },
+  { id: 2, student: "Siti Nurhaliza", quiz: "Membaca Pemahaman", score: 85, class: "Kelas B", date: "3 Feb", status: "good" },
+  { id: 3, student: "Budi Santoso", quiz: "Matematika Dasar", score: 75, class: "Kelas A", date: "2 Feb", status: "good" },
+  { id: 4, student: "Dewi Lestari", quiz: "Membaca Pemahaman", score: 92, class: "Kelas B", date: "2 Feb", status: "excellent" },
 ]
 
 const notifications = [
@@ -94,6 +94,21 @@ export default function KuisPenilaianPage() {
     }
     return quizzes
   })
+  
+  // Load initial grades data from localStorage or use default
+  const [gradesList, setGradesList] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('gradesList')
+      if (saved) {
+        try {
+          return JSON.parse(saved)
+        } catch (e) {
+          console.error('Error parsing gradesList from localStorage:', e)
+        }
+      }
+    }
+    return defaultGrades
+  })
 
   const [activeTab, setActiveTab] = useState<"quiz" | "grades">("quiz")
   const [searchQuery, setSearchQuery] = useState("")
@@ -125,6 +140,13 @@ export default function KuisPenilaianPage() {
       localStorage.setItem('quizList', JSON.stringify(quizList))
     }
   }, [quizList])
+  
+  // Save gradesList to localStorage whenever it changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('gradesList', JSON.stringify(gradesList))
+    }
+  }, [gradesList])
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -193,6 +215,12 @@ export default function KuisPenilaianPage() {
   const handleDeleteQuiz = (quizId: number) => {
     if (confirm("Apakah Anda yakin ingin menghapus kuis ini?")) {
       setQuizList(quizList.filter(quiz => quiz.id !== quizId))
+    }
+  }
+  
+  const handleDeleteGrade = (gradeId: number) => {
+    if (confirm("Apakah Anda yakin ingin menghapus data nilai ini?")) {
+      setGradesList(gradesList.filter(grade => grade.id !== gradeId))
     }
   }
 
@@ -569,8 +597,8 @@ export default function KuisPenilaianPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {recentGrades.map((grade, idx) => (
-                    <tr key={idx} className="hover:bg-white/50 transition">
+                  {gradesList.map((grade) => (
+                    <tr key={grade.id} className="hover:bg-white/50 transition">
                       <td className="px-6 py-4">
                         <div className="font-semibold text-gray-800">{grade.student}</div>
                       </td>
@@ -606,12 +634,20 @@ export default function KuisPenilaianPage() {
                       </td>
                       <td className="px-6 py-4 text-gray-600">{grade.date}</td>
                       <td className="px-6 py-4">
-                        <button 
-                          onClick={() => openGradeModal(grade)}
-                          className="px-4 py-2 bg-green-500 text-white rounded-xl hover:bg-green-600 transition text-sm font-medium"
-                        >
-                          Detail
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button 
+                            onClick={() => openGradeModal(grade)}
+                            className="px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition text-sm font-medium"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteGrade(grade.id)}
+                            className="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition text-sm font-medium"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
