@@ -5,79 +5,22 @@ import Link from "next/link"
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 
-const materials = [
-  {
-    id: 1,
-    title: "Pengenalan Angka 1-10",
-    subject: "Matematika",
-    class: "Kelas A",
-    type: "pdf",
-    size: "2.5 MB",
-    downloads: 45,
-    views: 128,
-    createdAt: "1 Feb 2026",
-    description: "Materi pembelajaran angka dasar untuk anak berkebutuhan khusus"
-  },
-  {
-    id: 2,
-    title: "Video Belajar Membaca",
-    subject: "Bahasa Indonesia",
-    class: "Semua Kelas",
-    type: "video",
-    size: "125 MB",
-    downloads: 32,
-    views: 256,
-    createdAt: "28 Jan 2026",
-    description: "Video interaktif belajar membaca dengan metode fonik"
-  },
-  {
-    id: 3,
-    title: "Flashcard Huruf A-Z",
-    subject: "Bahasa Indonesia",
-    class: "Kelas B",
-    type: "image",
-    size: "8.5 MB",
-    downloads: 67,
-    views: 189,
-    createdAt: "25 Jan 2026",
-    description: "Kartu bergambar huruf alfabet dengan ilustrasi menarik"
-  },
-  {
-    id: 4,
-    title: "Latihan Motorik Halus",
-    subject: "Keterampilan",
-    class: "Kelas A",
-    type: "pdf",
-    size: "4.2 MB",
-    downloads: 28,
-    views: 95,
-    createdAt: "20 Jan 2026",
-    description: "Panduan latihan motorik halus untuk meningkatkan koordinasi"
-  },
-  {
-    id: 5,
-    title: "Musik dan Gerak",
-    subject: "Seni",
-    class: "Semua Kelas",
-    type: "video",
-    size: "85 MB",
-    downloads: 54,
-    views: 312,
-    createdAt: "15 Jan 2026",
-    description: "Video pembelajaran musik dan gerakan sederhana"
-  },
-  {
-    id: 6,
-    title: "Mengenal Warna",
-    subject: "Seni",
-    class: "Kelas C",
-    type: "image",
-    size: "12 MB",
-    downloads: 41,
-    views: 178,
-    createdAt: "10 Jan 2026",
-    description: "Kartu dan poster mengenal warna-warna dasar"
-  },
+interface Material {
+  id: number
+  title: string
+  subject: string
+  class: string
+  type: string
+  size: string
+  sizeBytes: number
+  downloads: number
+  views: number
+  createdAt: string
+  description: string
+}
+
+const defaultMaterials: Material[] = [
+  // Data materi akan bertambah ketika guru upload materi
 ]
 
 const getTypeIcon = (type: string) => {
@@ -114,11 +57,33 @@ const notifications = [
 ]
 
 export default function MateriPage() {
+  // Load materials from localStorage or use default
+  const [materials, setMaterials] = useState<Material[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('materials')
+      if (saved) {
+        try {
+          return JSON.parse(saved)
+        } catch (e) {
+          console.error('Error parsing materials from localStorage:', e)
+        }
+      }
+    }
+    return defaultMaterials
+  })
+  
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedType, setSelectedType] = useState("all")
   const [showNotifications, setShowNotifications] = useState(false)
   const notificationRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
+  
+  // Save materials to localStorage whenever it changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('materials', JSON.stringify(materials))
+    }
+  }, [materials])
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -145,6 +110,12 @@ export default function MateriPage() {
     const matchType = selectedType === "all" || m.type === selectedType
     return matchSearch && matchType
   })
+  
+  // Calculate statistics
+  const totalDownloads = materials.reduce((sum, m) => sum + m.downloads, 0)
+  const totalViews = materials.reduce((sum, m) => sum + m.views, 0)
+  const totalStorageMB = materials.reduce((sum, m) => sum + m.sizeBytes, 0) / (1024 * 1024)
+  const storageText = totalStorageMB > 0 ? `${Math.round(totalStorageMB)} MB` : '0 MB'
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-green-100 via-blue-100 to-purple-200">
@@ -279,7 +250,7 @@ export default function MateriPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Total Unduhan</p>
-                <p className="text-3xl font-bold text-blue-600">267</p>
+                <p className="text-3xl font-bold text-blue-600">{totalDownloads}</p>
               </div>
               <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
                 <Download className="w-6 h-6 text-blue-600" />
@@ -290,7 +261,7 @@ export default function MateriPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Total Dilihat</p>
-                <p className="text-3xl font-bold text-green-600">1,158</p>
+                <p className="text-3xl font-bold text-green-600">{totalViews > 0 ? totalViews.toLocaleString() : 0}</p>
               </div>
               <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
                 <Eye className="w-6 h-6 text-green-600" />
@@ -301,7 +272,7 @@ export default function MateriPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Storage Used</p>
-                <p className="text-3xl font-bold text-orange-600">237 MB</p>
+                <p className="text-3xl font-bold text-orange-600">{storageText}</p>
               </div>
               <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
                 <Upload className="w-6 h-6 text-orange-600" />
