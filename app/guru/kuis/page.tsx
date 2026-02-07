@@ -5,56 +5,12 @@ import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 
-const quizzes = [
-  {
-    id: 1,
-    title: "Matematika Dasar - Penjumlahan",
-    subject: "Matematika",
-    class: "Kelas A",
-    questions: 10,
-    duration: 30,
-    participants: 15,
-    completed: 12,
-    avgScore: 85,
-    status: "active",
-    createdAt: "2 Feb 2026",
-    dueDate: "10 Feb 2026"
-  },
-  {
-    id: 2,
-    title: "Membaca Pemahaman",
-    subject: "Bahasa Indonesia",
-    class: "Kelas B",
-    questions: 8,
-    duration: 20,
-    participants: 18,
-    completed: 18,
-    avgScore: 78,
-    status: "completed",
-    createdAt: "28 Jan 2026",
-    dueDate: "3 Feb 2026"
-  },
-  {
-    id: 3,
-    title: "Mengenal Warna dan Bentuk",
-    subject: "Seni",
-    class: "Kelas A",
-    questions: 12,
-    duration: 25,
-    participants: 15,
-    completed: 8,
-    avgScore: 0,
-    status: "active",
-    createdAt: "1 Feb 2026",
-    dueDate: "8 Feb 2026"
-  }
+const quizzes: Quiz[] = [
+  // Data kuis akan bertambah ketika guru membuat kuis baru
 ]
 
-const defaultGrades = [
-  { id: 1, student: "Andi Pratama", quiz: "Matematika Dasar", score: 90, class: "Kelas A", date: "3 Feb", status: "excellent" },
-  { id: 2, student: "Siti Nurhaliza", quiz: "Membaca Pemahaman", score: 85, class: "Kelas B", date: "3 Feb", status: "good" },
-  { id: 3, student: "Budi Santoso", quiz: "Matematika Dasar", score: 75, class: "Kelas A", date: "2 Feb", status: "good" },
-  { id: 4, student: "Dewi Lestari", quiz: "Membaca Pemahaman", score: 92, class: "Kelas B", date: "2 Feb", status: "excellent" },
+const defaultGrades: Grade[] = [
+  // Data nilai akan bertambah ketika guru menambahkan nilai murid
 ]
 
 const notifications = [
@@ -351,6 +307,25 @@ export default function KuisPenilaianPage() {
     const matchStatus = selectedStatus === "all" || quiz.status === selectedStatus
     return matchSearch && matchStatus
   })
+  
+  // Calculate statistics
+  const calculateAverageScore = () => {
+    if (gradesList.length === 0) return 0
+    const total = gradesList.reduce((sum, grade) => sum + grade.score, 0)
+    return Math.round(total / gradesList.length)
+  }
+  
+  const calculateNeedsReview = () => {
+    // Count active quizzes that have participants but not all completed
+    return quizList.filter(quiz => 
+      quiz.status === "active" && 
+      quiz.participants > 0 && 
+      quiz.completed < quiz.participants
+    ).length
+  }
+  
+  const averageScore = calculateAverageScore()
+  const needsReview = calculateNeedsReview()
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-green-100 via-blue-100 to-purple-200">
@@ -524,7 +499,9 @@ export default function KuisPenilaianPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Rata-rata Nilai</p>
-                  <p className="text-3xl font-bold text-purple-600">82</p>
+                  <p className="text-3xl font-bold text-purple-600">
+                    {gradesList.length > 0 ? averageScore : "-"}
+                  </p>
                 </div>
                 <div className="p-3 bg-purple-100 rounded-xl">
                   <TrendingUp className="w-6 h-6 text-purple-600" />
@@ -536,7 +513,7 @@ export default function KuisPenilaianPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Perlu Direview</p>
-                  <p className="text-3xl font-bold text-orange-600">5</p>
+                  <p className="text-3xl font-bold text-orange-600">{needsReview}</p>
                 </div>
                 <div className="p-3 bg-orange-100 rounded-xl">
                   <Award className="w-6 h-6 text-orange-600" />
