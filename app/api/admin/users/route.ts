@@ -55,10 +55,13 @@ export async function GET(req: NextRequest) {
     })
 
     return NextResponse.json({ success: true, data: users })
-  } catch (error) {
+  } catch (error: any) {
     console.error("Get users error:", error)
     return NextResponse.json(
-      { error: "Terjadi kesalahan saat mengambil data user" },
+      { 
+        success: false,
+        error: "Terjadi kesalahan saat mengambil data user" 
+      },
       { status: 500 }
     )
   }
@@ -200,6 +203,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(
       { 
+        success: true,
         message: "User berhasil dibuat",
         user: {
           id: user.id,
@@ -210,10 +214,33 @@ export async function POST(req: NextRequest) {
       },
       { status: 201 }
     )
-  } catch (error) {
+  } catch (error: any) {
     console.error("Create user error:", error)
+    
+    // Handle specific Prisma errors
+    if (error.code === 'P2002') {
+      return NextResponse.json(
+        { 
+          success: false,
+          error: "Email atau NIS sudah terdaftar"
+        },
+        { status: 400 }
+      )
+    }
+    
+    if (error.code === 'P2003') {
+      return NextResponse.json(
+        { 
+          success: false,
+          error: "Data referensi tidak valid"
+        },
+        { status: 400 }
+      )
+    }
+
     return NextResponse.json(
       { 
+        success: false,
         error: "Terjadi kesalahan saat membuat user",
         details: error instanceof Error ? error.message : String(error)
       },

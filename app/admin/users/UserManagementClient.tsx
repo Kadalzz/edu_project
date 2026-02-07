@@ -28,6 +28,8 @@ interface Props {
 export default function UserManagementClient({ userName }: Props) {
   const router = useRouter()
   const [users, setUsers] = useState<User[]>([])
+  const [filteredUsers, setFilteredUsers] = useState<User[]>([])
+  const [searchQuery, setSearchQuery] = useState('')
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [formData, setFormData] = useState({
@@ -47,6 +49,24 @@ export default function UserManagementClient({ userName }: Props) {
     fetchUsers()
   }, [])
 
+  useEffect(() => {
+    // Filter users based on search query
+    if (searchQuery.trim() === '') {
+      setFilteredUsers(users)
+    } else {
+      const query = searchQuery.toLowerCase()
+      const filtered = users.filter(user => 
+        user.name.toLowerCase().includes(query) ||
+        user.email.toLowerCase().includes(query) ||
+        user.role.toLowerCase().includes(query) ||
+        (user.siswaChildren && user.siswaChildren.some(child => 
+          child.nama.toLowerCase().includes(query)
+        ))
+      )
+      setFilteredUsers(filtered)
+    }
+  }, [searchQuery, users])
+
   const fetchUsers = async () => {
     try {
       setLoading(true)
@@ -55,9 +75,13 @@ export default function UserManagementClient({ userName }: Props) {
       
       if (result.success) {
         setUsers(result.data)
+        setFilteredUsers(result.data)
+      } else {
+        alert(result.error || 'Gagal mengambil data user')
       }
     } catch (error) {
       console.error('Error fetching users:', error)
+      alert('Terjadi kesalahan saat mengambil data user')
     } finally {
       setLoading(false)
     }
@@ -100,6 +124,7 @@ export default function UserManagementClient({ userName }: Props) {
       }
 
       // Success
+      alert('User berhasil dibuat!')
       setShowModal(false)
       setFormData({
         name: '',
@@ -111,16 +136,18 @@ export default function UserManagementClient({ userName }: Props) {
         specialNeeds: '',
         phone: ''
       })
+      setError('')
       fetchUsers()
     } catch (error) {
-      setError('Terjadi kesalahan')
+      console.error('Create user error:', error)
+      setError('Terjadi kesalahan. Silakan coba lagi.')
     } finally {
       setSubmitting(false)
     }
   }
 
   const handleDeleteUser = async (userId: string, userName: string) => {
-    if (!confirm(`Apakah Anda yakin ingin menghapus user "${userName}"?`)) {
+    if (!confirm(`Apakah Anda yakin ingin menghapus user "${userName}"?\n\nPeringatan: Data terkait user ini juga akan terhapus.`)) {
       return
     }
 
@@ -132,12 +159,14 @@ export default function UserManagementClient({ userName }: Props) {
       const result = await response.json()
 
       if (response.ok) {
+        alert('User berhasil dihapus')
         fetchUsers()
       } else {
         alert(result.error || 'Gagal menghapus user')
       }
     } catch (error) {
-      alert('Terjadi kesalahan saat menghapus user')
+      console.error('Delete error:', error)
+      alert('Terjadi kesalahan saat menghapus user. Silakan coba lagi.')
     }
   }
 
@@ -191,18 +220,32 @@ export default function UserManagementClient({ userName }: Props) {
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto p-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Kelola User</h1>
-            <p className="text-gray-600 mt-1">Tambah atau hapus akun guru dan orang tua</p>
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Kelola User</h1>
+              <p className="text-gray-600 mt-1">Tambah atau hapus akun guru dan orang tua</p>
+            </div>
+            <button
+              onClick={() => setShowModal(true)}
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl hover:from-purple-600 hover:to-pink-600 transition shadow-lg font-medium"
+            >
+              <Plus className="w-5 h-5" />
+              Tambah User
+            </button>
           </div>
-          <button
-            onClick={() => setShowModal(true)}
-            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl hover:from-purple-600 hover:to-pink-600 transition shadow-lg font-medium"
-          >
-            <Plus className="w-5 h-5" />
-            Tambah User
-          </button>
+
+          {/* Search Bar */}
+          <div className="relative max-w-md">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Cari berdasarkan nama, email, atau nama anak..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-12 pr-4 py-3 bg-white/70 backdrop-blur-sm rounded-xl border border-gray-200 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+            />
+          </div>
         </div>
 
         {/* Users Table */}
@@ -225,7 +268,7 @@ export default function UserManagementClient({ userName }: Props) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {users.map((user) => (
+                {filteredUsers.map((user) => (
                   <tr key={user.id} className="hover:bg-purple-50/50 transition">
                     <td className="px-6 py-4">
                       <div className="font-medium text-gray-900">{user.name}</div>
@@ -263,10 +306,10 @@ export default function UserManagementClient({ userName }: Props) {
                     </td>
                   </tr>
                 ))}
-                {users.length === 0 && !loading && (
+                {filteredUsers.length === 0 && !loading && (
                   <tr>
                     <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
-                      Belum ada user yang terdaftar
+                      {searchQuery ? 'Tidak ada user yang sesuai dengan pencarian' : 'Belum ada user yang terdaftar'}
                     </td>
                   </tr>
                 )}
