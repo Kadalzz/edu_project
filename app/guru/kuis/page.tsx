@@ -80,6 +80,21 @@ interface Quiz {
 }
 
 export default function KuisPenilaianPage() {
+  // Load initial quiz data from localStorage or use default
+  const [quizList, setQuizList] = useState<Quiz[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('quizList')
+      if (saved) {
+        try {
+          return JSON.parse(saved)
+        } catch (e) {
+          console.error('Error parsing quizList from localStorage:', e)
+        }
+      }
+    }
+    return quizzes
+  })
+
   const [activeTab, setActiveTab] = useState<"quiz" | "grades">("quiz")
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedStatus, setSelectedStatus] = useState("all")
@@ -90,7 +105,6 @@ export default function KuisPenilaianPage() {
   const [showGradeModal, setShowGradeModal] = useState(false)
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null)
   const [selectedGrade, setSelectedGrade] = useState<any>(null)
-  const [quizList, setQuizList] = useState(quizzes)
   
   const notificationRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
@@ -104,6 +118,13 @@ export default function KuisPenilaianPage() {
     duration: 30,
     dueDate: ""
   })
+
+  // Save quizList to localStorage whenever it changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('quizList', JSON.stringify(quizList))
+    }
+  }, [quizList])
 
   // Close dropdown when clicking outside
   useEffect(() => {
