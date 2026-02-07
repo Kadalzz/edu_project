@@ -124,29 +124,8 @@ export default function AdminDashboardClient({ userName }: Props) {
                   <div className="p-4 border-b border-gray-100">
                     <h3 className="font-semibold text-gray-800">Notifikasi</h3>
                   </div>
-                  <div className="divide-y divide-gray-100">
-                    {notifications.map((notif) => (
-                      <div 
-                        key={notif.id}
-                        className={`p-4 hover:bg-gray-50 cursor-pointer transition ${notif.unread ? 'bg-blue-50' : ''}`}
-                      >
-                        <div className="flex justify-between items-start mb-1">
-                          <h4 className={`text-sm font-medium ${notif.unread ? 'text-gray-900' : 'text-gray-700'}`}>
-                            {notif.title}
-                          </h4>
-                          {notif.unread && (
-                            <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                          )}
-                        </div>
-                        <p className="text-sm text-gray-600 mb-1">{notif.message}</p>
-                        <p className="text-xs text-gray-400">{notif.time}</p>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="p-3 border-t border-gray-100 text-center">
-                    <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
-                      Lihat Semua Notifikasi
-                    </button>
+                  <div className="p-8 text-center">
+                    <p className="text-sm text-gray-500">Belum ada notifikasi</p>
                   </div>
                 </div>
               )}
@@ -171,47 +150,26 @@ export default function AdminDashboardClient({ userName }: Props) {
               <h2 className="text-2xl font-bold text-gray-800 mb-6">Welcome Admin!</h2>
               
               <div className="grid grid-cols-2 gap-6">
-                {/* Total Students with Pie Chart */}
+                {/* Total Students */}
                 <div className="bg-gradient-to-br from-white to-purple-50 rounded-2xl p-5 shadow-sm">
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <p className="text-sm text-gray-600 font-medium">Total Siswa</p>
-                      <p className="text-4xl font-bold text-gray-800">156</p>
-                      <p className="text-xs text-purple-600 mt-1">12 siswa baru</p>
-                    </div>
-                    <div className="w-24 h-24">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={pieData}
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={25}
-                            outerRadius={40}
-                            paddingAngle={2}
-                            dataKey="value"
-                          >
-                            {pieData.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={entry.color} />
-                            ))}
-                          </Pie>
-                        </PieChart>
-                      </ResponsiveContainer>
+                      <p className="text-4xl font-bold text-gray-800">-</p>
+                      <p className="text-xs text-purple-600 mt-1">Data akan segera tersedia</p>
                     </div>
                   </div>
                 </div>
 
-                {/* Top Programs */}
+                {/* Quick Actions */}
                 <div className="space-y-3">
-                  <p className="text-sm text-gray-600 font-medium">Top Programs</p>
-                  {topPrograms.map((program, idx) => (
-                    <div key={idx} className="flex items-center space-x-3 bg-white/80 rounded-xl p-3 shadow-sm">
-                      <div className={`w-10 h-10 ${program.color} rounded-lg flex items-center justify-center text-xl`}>
-                        {program.icon}
-                      </div>
-                      <span className="text-sm font-medium text-gray-700">{program.name}</span>
+                  <p className="text-sm text-gray-600 font-medium">Quick Actions</p>
+                  <Link href="/admin/users" className="flex items-center space-x-3 bg-white/80 rounded-xl p-3 shadow-sm hover:shadow-md transition">
+                    <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                      <Users className="w-5 h-5 text-purple-600" />
                     </div>
-                  ))}
+                    <span className="text-sm font-medium text-gray-700">Kelola User</span>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -225,34 +183,8 @@ export default function AdminDashboardClient({ userName }: Props) {
                 </select>
               </div>
               
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={weeklyData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                    <XAxis dataKey="name" stroke="#9ca3af" style={{ fontSize: '12px' }} />
-                    <YAxis stroke="#9ca3af" style={{ fontSize: '12px' }} />
-                    <Tooltip />
-                    <Legend />
-                    <Line type="monotone" dataKey="kehadiran" stroke="#3b82f6" strokeWidth={2} dot={{ r: 4 }} />
-                    <Line type="monotone" dataKey="nilai" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 4 }} />
-                    <Line type="monotone" dataKey="aktivitas" stroke="#f59e0b" strokeWidth={2} dot={{ r: 4 }} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-              
-              <div className="flex items-center justify-center space-x-8 mt-4">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                  <span className="text-xs text-gray-600">Kehadiran</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                  <span className="text-xs text-gray-600">Nilai</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-                  <span className="text-xs text-gray-600">Aktivitas</span>
-                </div>
+              <div className="h-64 flex items-center justify-center">
+                <p className="text-gray-500">Data aktivitas akan segera tersedia</p>
               </div>
             </div>
           </div>
@@ -278,35 +210,13 @@ export default function AdminDashboardClient({ userName }: Props) {
               </div>
             </div>
 
-            {/* Birthday Notification */}
-            {birthdays.map((person, idx) => (
-              <div key={idx} className="bg-gradient-to-br from-purple-200 via-pink-200 to-purple-300 rounded-3xl p-6 shadow-xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 text-6xl opacity-20">🎈</div>
-                <img src="https://ui-avatars.com/api/?name=Andi+Pratama&background=8b5cf6&color=fff" alt={person.name} className="w-12 h-12 rounded-full border-4 border-white shadow-lg mb-3" />
-                <h4 className="font-bold text-gray-800 text-lg">{person.name}</h4>
-                <p className="text-sm text-gray-600 mb-2">Has birthday today</p>
-                <button className="w-full py-2 bg-white rounded-xl font-medium text-purple-600 hover:bg-purple-50 transition shadow-sm">
-                  Wish Him 🎉
-                </button>
-              </div>
-            ))}
+            {/* Birthday Notification - Hidden until data available */}
 
             {/* Students on Holiday */}
             <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-xl p-6">
               <h4 className="font-bold text-gray-800 mb-4">Siswa Tidak Hadir</h4>
-              <div className="space-y-3">
-                {holidays.map((student, idx) => (
-                  <div key={idx} className="flex items-center justify-between bg-purple-50 rounded-xl p-3">
-                    <div className="flex items-center space-x-3">
-                      <img src={`https://ui-avatars.com/api/?name=${student.name}&background=random`} alt={student.name} className="w-10 h-10 rounded-full" />
-                      <div>
-                        <p className="text-sm font-medium text-gray-800">{student.name}</p>
-                        <p className="text-xs text-gray-500">{student.status}</p>
-                      </div>
-                    </div>
-                    <span className={`text-xs font-semibold ${student.color}`}>{student.date}</span>
-                  </div>
-                ))}
+              <div className="py-8 text-center">
+                <p className="text-sm text-gray-500">Belum ada data</p>
               </div>
             </div>
 
