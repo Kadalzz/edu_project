@@ -2,6 +2,7 @@
 
 import { Users, Search, Filter, Download, UserPlus, BookOpen, TrendingUp, Award, Calendar, Mail, Phone, MapPin, ChevronRight, Trash2, Edit } from "lucide-react"
 import { useState, useEffect } from "react"
+import Link from "next/link"
 
 interface Student {
   id: number
@@ -17,6 +18,8 @@ interface Student {
   status: string
   specialNeeds: string
   joinDate: string
+  totalAssignments: number
+  completedAssignments: number
 }
 
 const defaultStudents: Student[] = [
@@ -60,6 +63,10 @@ export default function DaftarMuridPage() {
           // Generate avatar initials from name
           const initials = siswa.nama.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
           
+          // Count assignments (nilai records)
+          const totalAssignments = siswa.nilai ? siswa.nilai.length : 0
+          const completedAssignments = siswa.nilai ? siswa.nilai.filter((n: any) => n.nilai >= 60).length : 0
+          
           return {
             id: parseInt(siswa.id.slice(-8), 36), // Convert cuid to number for UI
             originalId: siswa.id, // Store original cuid for API calls
@@ -73,7 +80,9 @@ export default function DaftarMuridPage() {
             avgScore,
             status: 'active', // All registered students are active
             specialNeeds: siswa.kebutuhanKhusus || '-',
-            joinDate: new Date(siswa.createdAt).toLocaleDateString('id-ID')
+            joinDate: new Date(siswa.createdAt).toLocaleDateString('id-ID'),
+            totalAssignments,
+            completedAssignments
           }
         })
         
@@ -390,18 +399,28 @@ export default function DaftarMuridPage() {
                   </div>
                   <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-4 text-center">
                     <p className="text-sm text-blue-600 mb-1">Nilai Rata-rata</p>
-                    <p className="text-3xl font-bold text-blue-700">{selectedStudent.avgScore}</p>
+                    <p className="text-3xl font-bold text-blue-700">
+                      {selectedStudent.avgScore > 0 ? selectedStudent.avgScore : '-'}
+                    </p>
                   </div>
                   <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-4 text-center">
                     <p className="text-sm text-purple-600 mb-1">Tugas Selesai</p>
-                    <p className="text-3xl font-bold text-purple-700">12/15</p>
+                    <p className="text-3xl font-bold text-purple-700">
+                      {selectedStudent.totalAssignments > 0 
+                        ? `${selectedStudent.completedAssignments}/${selectedStudent.totalAssignments}`
+                        : '-'
+                      }
+                    </p>
                   </div>
                 </div>
 
                 <div className="flex gap-3">
-                  <button className="flex-1 px-6 py-3 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-2xl font-medium hover:shadow-xl transition">
+                  <Link 
+                    href={`/guru/murid/${selectedStudent.originalId}/progress`}
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-2xl font-medium hover:shadow-xl transition text-center"
+                  >
                     Lihat Progress Detail
-                  </button>
+                  </Link>
                   <button 
                     onClick={() => handleDeleteStudent(selectedStudent.id)}
                     className="px-6 py-3 bg-red-500 text-white rounded-2xl font-medium hover:bg-red-600 transition flex items-center gap-2"
