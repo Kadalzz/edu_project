@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { BookOpen, LogOut, ClipboardList, FileText, Award, BarChart3, Users, TrendingUp } from "lucide-react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 
@@ -24,7 +24,7 @@ interface StudentData {
   allBadges: Array<{ id: string, name: string, description: string, earnedAt: string }>
 }
 
-export default function StudentDashboardPage() {
+function StudentDashboardContent() {
   const [studentData, setStudentData] = useState<StudentData | null>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
@@ -283,5 +283,17 @@ export default function StudentDashboardPage() {
         )}
       </main>
     </div>
+  )
+}
+
+export default function StudentDashboardPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
+      </div>
+    }>
+      <StudentDashboardContent />
+    </Suspense>
   )
 }
