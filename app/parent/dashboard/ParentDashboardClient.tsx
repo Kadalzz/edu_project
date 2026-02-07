@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { Users, BookOpen, GraduationCap, TrendingUp, Calendar, Settings, Bell, LogOut, Search, FileText, MessageSquare, Award, BarChart2, Clock, User, ArrowRight } from "lucide-react"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts'
 import { useState, useRef, useEffect } from "react"
