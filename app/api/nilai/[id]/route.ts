@@ -4,10 +4,10 @@ import prisma from "@/lib/prisma"
 // GET - Get single grade by ID
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await context.params
 
     const nilai = await prisma.nilai.findUnique({
       where: { id },
@@ -56,10 +56,10 @@ export async function GET(
 // PATCH - Update grade
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await context.params
     const body = await request.json()
     const {
       nilai,
@@ -125,10 +125,10 @@ export async function PATCH(
 // DELETE - Delete grade
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await context.params
 
     // Check if grade exists
     const existingNilai = await prisma.nilai.findUnique({

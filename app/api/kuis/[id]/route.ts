@@ -4,10 +4,10 @@ import prisma from "@/lib/prisma"
 // GET - Get single quiz by ID
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await context.params
 
     const kuis: any = await prisma.kuis.findUnique({
       where: { id },
@@ -85,10 +85,10 @@ export async function GET(
 // PATCH - Update quiz
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await context.params
     const body = await request.json()
     const {
       judul,
@@ -176,10 +176,10 @@ export async function PATCH(
 // DELETE - Delete quiz
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await context.params
 
     // Check if quiz exists
     const existingKuis = await prisma.kuis.findUnique({

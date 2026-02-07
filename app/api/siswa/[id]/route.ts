@@ -4,9 +4,10 @@ import prisma from "@/lib/prisma"
 // GET - Get student by ID
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const params = await context.params
     const siswa = await prisma.siswa.findUnique({
       where: { id: params.id },
       include: {
@@ -64,9 +65,10 @@ export async function GET(
 // PATCH - Update student
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const params = await context.params
     const body = await request.json()
     
     const siswa = await prisma.siswa.update({
@@ -99,9 +101,10 @@ export async function PATCH(
 // DELETE - Delete student
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const params = await context.params
     await prisma.siswa.delete({
       where: { id: params.id }
     })

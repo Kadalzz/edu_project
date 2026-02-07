@@ -4,10 +4,10 @@ import prisma from "@/lib/prisma"
 // GET - Get single material by ID
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await context.params
 
     const materi = await prisma.materi.findUnique({
       where: { id },
@@ -54,10 +54,10 @@ export async function GET(
 // PATCH - Update material
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await context.params
     const body = await request.json()
     const {
       judul,
@@ -119,10 +119,10 @@ export async function PATCH(
 // DELETE - Delete material
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await context.params
 
     // Check if material exists
     const existingMateri = await prisma.materi.findUnique({

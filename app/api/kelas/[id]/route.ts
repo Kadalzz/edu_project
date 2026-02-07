@@ -4,10 +4,10 @@ import prisma from "@/lib/prisma"
 // GET - Get single class by ID
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await context.params
 
     const kelas = await prisma.kelas.findUnique({
       where: { id },
@@ -67,10 +67,10 @@ export async function GET(
 // PATCH - Update class
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await context.params
     const body = await request.json()
     const { nama, tingkat, tahunAjaran, guruId } = body
 
@@ -127,10 +127,10 @@ export async function PATCH(
 // DELETE - Delete class
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await context.params
 
     // Check if class exists
     const existingKelas = await prisma.kelas.findUnique({
