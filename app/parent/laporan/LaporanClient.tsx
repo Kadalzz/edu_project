@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { Users, BookOpen, User, FileText, MessageSquare, Calendar, LogOut, ArrowRight, Download, Eye } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { useState } from "react"
 
 interface Props {
   userName: string
@@ -11,6 +12,14 @@ interface Props {
 
 export default function LaporanClient({ userName, userId }: Props) {
   const router = useRouter()
+  const [reports, setReports] = useState<any[]>([])
+
+  // TODO: Fetch reports from API
+  // const fetchReports = async () => {
+  //   const response = await fetch(`/api/parent/reports?parentId=${userId}`)
+  //   const data = await response.json()
+  //   setReports(data)
+  // }
 
   const handleSignOut = async () => {
     try {
@@ -20,26 +29,6 @@ export default function LaporanClient({ userName, userId }: Props) {
       console.error('Sign out error:', error)
     }
   }
-
-  // Dummy data untuk laporan
-  const reports = [
-    {
-      id: '1',
-      childName: 'Contoh Siswa',
-      title: 'Laporan Bulanan - Januari 2026',
-      date: '2026-01-31',
-      type: 'Bulanan',
-      status: 'Sudah Dibaca'
-    },
-    {
-      id: '2',
-      childName: 'Contoh Siswa',
-      title: 'Laporan Semester 1',
-      date: '2025-12-20',
-      type: 'Semester',
-      status: 'Baru'
-    }
-  ]
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-purple-200">

@@ -22,25 +22,6 @@ interface Child {
   weeklyAttendance: Array<{ date: string, status: string }>
 }
 
-const recentReports = [
-  { title: 'Laporan Mingguan', date: '1 Feb 2026', teacher: 'Bu Sarah', status: 'new' },
-  { title: 'Progress Report', date: '28 Jan 2026', teacher: 'Pak Budi', status: 'read' },
-  { title: 'Perkembangan Sosial', date: '25 Jan 2026', teacher: 'Bu Sarah', status: 'read' },
-]
-
-const upcomingSchedule = [
-  { event: 'Pertemuan Orang Tua', date: '5 Feb', time: '14:00', type: 'meeting' },
-  { event: 'Presentasi Proyek', date: '7 Feb', time: '10:00', type: 'presentation' },
-  { event: 'Evaluasi Bulanan', date: '10 Feb', time: '15:00', type: 'evaluation' },
-]
-
-const notifications = [
-  { id: 1, title: 'Update Nilai Anak', message: 'Nilai kuis Matematika sudah keluar', time: '10 menit lalu', unread: true },
-  { id: 2, title: 'Pesan dari Guru', message: 'Guru mengirim pesan tentang perkembangan anak', time: '30 menit lalu', unread: true },
-  { id: 3, title: 'Reminder: Meeting', message: 'Meeting dengan guru besok jam 14:00', time: '1 jam lalu', unread: false },
-  { id: 4, title: 'Tugas Baru', message: 'Anak mendapat tugas baru untuk dikerjakan', time: '2 jam lalu', unread: false },
-]
-
 interface Props {
   userName: string
   userId: string
@@ -93,21 +74,6 @@ export default function ParentDashboardClient({ userName, userId }: Props) {
     subject: g.subject,
     nilai: g.grade
   })) || []
-
-  const recentReports = [
-    { title: 'Laporan Mingguan', date: '1 Feb 2026', teacher: selectedChild?.guruNama || 'Bu Sarah', status: 'new' as const },
-    { title: 'Progress Report', date: '28 Jan 2026', teacher: selectedChild?.guruNama || 'Pak Budi', status: 'read' as const },
-  ]
-
-  const upcomingSchedule = [
-    { event: 'Pertemuan Orang Tua', date: '5 Feb', time: '14:00', type: 'meeting' },
-    { event: 'Evaluasi Bulanan', date: '10 Feb', time: '15:00', type: 'evaluation' },
-  ]
-
-  const notifications = [
-    { id: 1, title: 'Update Nilai Anak', message: 'Nilai kuis sudah keluar', time: '10 menit lalu', unread: true },
-    { id: 2, title: 'Pesan dari Guru', message: 'Guru mengirim pesan', time: '30 menit lalu', unread: true },
-  ]
 
   // Close dropdown when clicking outside
   useEffect(() => {

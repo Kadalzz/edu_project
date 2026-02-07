@@ -13,15 +13,14 @@ interface Props {
 export default function ChatClient({ userName, userId }: Props) {
   const router = useRouter()
   const [message, setMessage] = useState('')
+  const [messages, setMessages] = useState<any[]>([])
 
-  const handleSignOut = async () => {
-    try {
-      await fetch('/api/auth/signout', { method: 'POST' })
-      router.push('/login')
-    } catch (error) {
-      console.error('Sign out error:', error)
-    }
-  }
+  // TODO: Fetch messages from API
+  // const fetchMessages = async () => {
+  //   const response = await fetch(`/api/parent/messages?parentId=${userId}`)
+  //   const data = await response.json()
+  //   setMessages(data)
+  // }
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-purple-200">
@@ -103,25 +102,25 @@ export default function ChatClient({ userName, userId }: Props) {
           {/* Chat Messages */}
           <div className="flex-1 p-6 overflow-y-auto">
             <div className="space-y-4">
-              {/* Example messages */}
-              <div className="flex justify-start">
-                <div className="bg-gray-100 rounded-2xl rounded-tl-none px-4 py-3 max-w-md">
-                  <p className="text-sm text-gray-800">Selamat pagi Bapak/Ibu. Bagaimana kabar anak Anda hari ini?</p>
-                  <p className="text-xs text-gray-500 mt-1">08:30</p>
+              {messages.length === 0 ? (
+                <div className="text-center py-8">
+                  <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-400 text-sm">Belum ada pesan. Mulai percakapan dengan guru</p>
                 </div>
-              </div>
-              
-              <div className="flex justify-end">
-                <div className="bg-gradient-to-r from-orange-500 to-pink-500 rounded-2xl rounded-tr-none px-4 py-3 max-w-md">
-                  <p className="text-sm text-white">Pagi Bu. Alhamdulillah baik. Terima kasih Bu.</p>
-                  <p className="text-xs text-orange-100 mt-1">08:32</p>
-                </div>
-              </div>
-
-              <div className="text-center py-8">
-                <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <p className="text-gray-400 text-sm">Mulai percakapan dengan guru</p>
-              </div>
+              ) : (
+                messages.map((msg, idx) => (
+                  <div key={idx} className={`flex ${msg.fromMe ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`rounded-2xl px-4 py-3 max-w-md ${
+                      msg.fromMe 
+                        ? 'bg-gradient-to-r from-orange-500 to-pink-500 rounded-tr-none' 
+                        : 'bg-gray-100 rounded-tl-none'
+                    }`}>
+                      <p className={`text-sm ${msg.fromMe ? 'text-white' : 'text-gray-800'}`}>{msg.text}</p>
+                      <p className={`text-xs mt-1 ${msg.fromMe ? 'text-orange-100' : 'text-gray-500'}`}>{msg.time}</p>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
 

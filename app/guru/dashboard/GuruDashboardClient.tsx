@@ -6,13 +6,6 @@ import Link from "next/link"
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 
-const notifications = [
-  { id: 1, title: 'Tugas baru dari Andi Pratama', message: 'Matematika', time: '5 menit lalu', unread: true },
-  { id: 2, title: 'Kuis diselesaikan oleh Siti', message: 'Bahasa Indonesia', time: '20 menit lalu', unread: true },
-  { id: 3, title: 'Pesan dari Orang Tua', message: 'Ibu Sarah mengirim pesan', time: '1 jam lalu', unread: false },
-  { id: 4, title: 'Reminder: Meeting', message: 'Meeting dengan wali murid jam 14:00', time: '2 jam lalu', unread: false },
-]
-
 interface Props {
   userName: string
 }

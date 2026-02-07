@@ -11,39 +11,14 @@ interface Props {
 
 export default function JadwalClient({ userName, userId }: Props) {
   const router = useRouter()
+  const [schedules, setSchedules] = useState<any[]>([])
 
-  const handleSignOut = async () => {
-    try {
-      await fetch('/api/auth/signout', { method: 'POST' })
-      router.push('/login')
-    } catch (error) {
-      console.error('Sign out error:', error)
-    }
-  }
-
-  // Dummy data untuk jadwal
-  const schedules = [
-    {
-      id: '1',
-      title: 'Konsultasi Progress Belajar',
-      date: '2026-02-15',
-      time: '10:00 - 11:00',
-      location: 'Ruang Guru',
-      teacher: 'Bu Sarah',
-      status: 'Akan Datang',
-      type: 'Online'
-    },
-    {
-      id: '2',
-      title: 'Pembahasan Hasil UTS',
-      date: '2026-01-20',
-      time: '14:00 - 15:00',
-      location: 'Zoom Meeting',
-      teacher: 'Pak Ahmad',
-      status: 'Selesai',
-      type: 'Online'
-    }
-  ]
+  // TODO: Fetch schedules from API
+  // const fetchSchedules = async () => {
+  //   const response = await fetch(`/api/parent/schedules?parentId=${userId}`)
+  //   const data = await response.json()
+  //   setSchedules(data)
+  // }
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-purple-200">

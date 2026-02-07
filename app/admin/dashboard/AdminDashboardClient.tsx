@@ -1,47 +1,10 @@
 "use client"
 
+import Link from "next/link"
 import { Users, BookOpen, GraduationCap, TrendingUp, Calendar, Settings, Bell, LogOut, Search, UserCheck, UserX, Clock } from "lucide-react"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
-
-const weeklyData = [
-  { name: 'Sun', kehadiran: 85, nilai: 78, aktivitas: 65 },
-  { name: 'Mon', kehadiran: 92, nilai: 85, aktivitas: 88 },
-  { name: 'Tue', kehadiran: 78, nilai: 82, aktivitas: 75 },
-  { name: 'Wed', kehadiran: 95, nilai: 88, aktivitas: 92 },
-  { name: 'Thu', kehadiran: 88, nilai: 90, aktivitas: 85 },
-  { name: 'Fri', kehadiran: 82, nilai: 79, aktivitas: 78 },
-  { name: 'Sat', kehadiran: 70, nilai: 75, aktivitas: 68 },
-]
-
-const pieData = [
-  { name: 'Hadir', value: 142, color: '#8b5cf6' },
-  { name: 'Izin', value: 10, color: '#ec4899' },
-  { name: 'Sakit', value: 4, color: '#f59e0b' },
-]
-
-const topPrograms = [
-  { name: 'Matematika', icon: '📊', color: 'bg-blue-500' },
-  { name: 'Terapi Wicara', icon: '💬', color: 'bg-purple-500' },
-  { name: 'Seni & Kreativitas', icon: '🎨', color: 'bg-pink-500' },
-]
-
-const birthdays = [
-  { name: 'Andi Pratama', class: 'Kelas A' },
-]
-
-const holidays = [
-  { name: 'Sarah', status: 'Sakit', date: 'Hari ini', color: 'text-red-500' },
-  { name: 'Budi', status: 'Izin keluarga', date: '2-4 Feb', color: 'text-orange-500' },
-]
-
-const notifications = [
-  { id: 1, title: 'Registrasi Siswa Baru', message: '3 siswa baru menunggu persetujuan', time: '15 menit lalu', unread: true },
-  { id: 2, title: 'Laporan Guru', message: 'Laporan bulanan perlu direview', time: '45 menit lalu', unread: true },
-  { id: 3, title: 'Sistem Update', message: 'Update sistem berhasil dilakukan', time: '2 jam lalu', unread: false },
-  { id: 4, title: 'Pengumuman', message: 'Meeting admin dijadwalkan besok', time: '3 jam lalu', unread: false },
-]
 
 interface Props {
   userName: string
@@ -85,42 +48,42 @@ export default function AdminDashboardClient({ userName }: Props) {
         </div>
         
         <nav className="mt-8 px-4 space-y-2">
-          <a href="#" className="flex items-center px-4 py-3 text-purple-600 bg-purple-50 rounded-xl shadow-sm">
+          <Link href="/admin/dashboard" className="flex items-center px-4 py-3 text-purple-600 bg-purple-50 rounded-xl shadow-sm">
             <div className="w-8 h-8 mr-3 bg-purple-100 rounded-lg flex items-center justify-center">
               <Users className="w-4 h-4 text-purple-600" />
             </div>
             <span className="font-medium">Dashboard</span>
-          </a>
-          <a href="#" className="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
+          </Link>
+          <Link href="/admin/users" className="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
+            <div className="w-8 h-8 mr-3 bg-gray-100 rounded-lg flex items-center justify-center">
+              <Users className="w-4 h-4 text-gray-600" />
+            </div>
+            <span className="font-medium">Kelola User</span>
+          </Link>
+          <Link href="#" className="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
             <div className="w-8 h-8 mr-3 bg-gray-100 rounded-lg flex items-center justify-center">
               <Calendar className="w-4 h-4 text-gray-600" />
             </div>
             <span className="font-medium">Attendance</span>
-          </a>
-          <a href="#" className="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
-            <div className="w-8 h-8 mr-3 bg-gray-100 rounded-lg flex items-center justify-center">
-              <Users className="w-4 h-4 text-gray-600" />
-            </div>
-            <span className="font-medium">Siswa</span>
-          </a>
-          <a href="#" className="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
+          </Link>
+          <Link href="#" className="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
             <div className="w-8 h-8 mr-3 bg-gray-100 rounded-lg flex items-center justify-center">
               <GraduationCap className="w-4 h-4 text-gray-600" />
             </div>
             <span className="font-medium">Analytics</span>
-          </a>
-          <a href="#" className="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
+          </Link>
+          <Link href="#" className="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
             <div className="w-8 h-8 mr-3 bg-gray-100 rounded-lg flex items-center justify-center">
               <TrendingUp className="w-4 h-4 text-gray-600" />
             </div>
             <span className="font-medium">Report Attendance</span>
-          </a>
-          <a href="#" className="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
+          </Link>
+          <Link href="#" className="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
             <div className="w-8 h-8 mr-3 bg-gray-100 rounded-lg flex items-center justify-center">
               <Settings className="w-4 h-4 text-gray-600" />
             </div>
             <span className="font-medium">Settings</span>
-          </a>
+          </Link>
         </nav>
       </aside>
 
