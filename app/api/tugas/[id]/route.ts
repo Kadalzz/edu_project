@@ -64,6 +64,10 @@ export async function GET(
 
     const tugasWithStats = {
       ...tugas,
+      _count: {
+        pertanyaan: totalQuestions,
+        hasilTugas: totalParticipants
+      },
       statistics: {
         totalQuestions,
         totalParticipants,

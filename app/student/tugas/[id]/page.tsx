@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useState, useEffect, Suspense } from "react"
+import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { ArrowLeft, Clock, Calendar, FileText, Upload, Video, CheckCircle, Home, Building2, AlertCircle } from "lucide-react"
 import Link from "next/link"
 
@@ -25,9 +25,11 @@ interface MySubmission {
   gradedAt: string | null
 }
 
-export default function KerjakanTugasPage() {
+function KerjakanTugasContent() {
   const params = useParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const studentId = searchParams.get('studentId')
   const [tugas, setTugas] = useState<Tugas | null>(null)
   const [mySubmission, setMySubmission] = useState<MySubmission | null>(null)
   const [loading, setLoading] = useState(true)
@@ -37,7 +39,7 @@ export default function KerjakanTugasPage() {
 
   useEffect(() => {
     fetchTugasDetail()
-  }, [params.id])
+  }, [params.id, studentId])
 
   const fetchTugasDetail = async () => {
     try {
@@ -48,8 +50,11 @@ export default function KerjakanTugasPage() {
       if (result.success) {
         setTugas(result.data)
         
-        // Check if already submitted
-        const submissionRes = await fetch(`/api/tugas/${params.id}/my-submission`)
+        // Check if already submitted (pass studentId if available)
+        const submissionUrl = studentId 
+          ? `/api/tugas/${params.id}/my-submission?siswaId=${studentId}`
+          : `/api/tugas/${params.id}/my-submission`
+        const submissionRes = await fetch(submissionUrl)
         const submissionData = await submissionRes.json()
         if (submissionData.success && submissionData.data) {
           setMySubmission(submissionData.data)
@@ -91,6 +96,11 @@ export default function KerjakanTugasPage() {
       return
     }
 
+    if (!studentId) {
+      alert('Siswa ID tidak ditemukan. Silakan kembali ke halaman sebelumnya.')
+      return
+    }
+
     try {
       setUploading(true)
 
@@ -98,32 +108,46 @@ export default function KerjakanTugasPage() {
       // For now, we'll use a data URL (not recommended for large files in production)
       const reader = new FileReader()
       
-      reader.onloadend = async () => {
-        const videoDataUrl = reader.result as string
-
-        const response = await fetch(`/api/tugas/${params.id}/submit`, {
+      const submitVideo = (videoDataUrl: string) => {
+        return fetch(`/api/tugas/${params.id}/submit`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            siswaId: studentId,
             videoUrl: videoDataUrl // In production, this would be the cloud URL
           })
         })
+      }
+      
+      reader.onloadend = async () => {
+        try {
+          const videoDataUrl = reader.result as string
+          const response = await submitVideo(videoDataUrl)
+          const result = await response.json()
 
-        const result = await response.json()
-
-        if (result.success) {
-          alert('Tugas berhasil dikumpulkan!')
-          fetchTugasDetail()
-        } else {
-          alert(result.error || 'Gagal mengumpulkan tugas')
+          if (result.success) {
+            alert('Tugas berhasil dikumpulkan!')
+            fetchTugasDetail()
+          } else {
+            alert(result.error || 'Gagal mengumpulkan tugas')
+          }
+        } catch (error) {
+          console.error('Error submitting tugas:', error)
+          alert('Terjadi kesalahan saat mengumpulkan tugas')
+        } finally {
+          setUploading(false)
         }
+      }
+      
+      reader.onerror = () => {
+        alert('Gagal membaca file video')
+        setUploading(false)
       }
 
       reader.readAsDataURL(videoFile)
     } catch (error) {
       console.error('Error submitting tugas:', error)
       alert('Terjadi kesalahan saat mengumpulkan tugas')
-    } finally {
       setUploading(false)
     }
   }
@@ -376,5 +400,20 @@ export default function KerjakanTugasPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function KerjakanTugasPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-100 to-blue-200 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Memuat tugas...</p>
+        </div>
+      </div>
+    }>
+      <KerjakanTugasContent />
+    </Suspense>
   )
 }

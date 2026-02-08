@@ -2,11 +2,13 @@
 
 import Link from "next/link"
 import { GraduationCap, BookOpen, ClipboardList, User, Bell, LogOut, Clock, CheckCircle, AlertCircle } from "lucide-react"
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect, Suspense } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 
-export default function StudentTugasPage() {
+function StudentTugasContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const studentId = searchParams.get('studentId')
   const [tugas, setTugas] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -160,7 +162,7 @@ export default function StudentTugasPage() {
                   </div>
 
                   <button
-                    onClick={() => router.push(`/student/tugas/${item.id}`)}
+                    onClick={() => router.push(`/student/tugas/${item.id}${studentId ? `?studentId=${studentId}` : ''}`)}
                     disabled={item.status !== 'ACTIVE'}
                     className="w-full py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-medium hover:from-purple-600 hover:to-pink-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
                   >
@@ -173,5 +175,17 @@ export default function StudentTugasPage() {
         )}
       </main>
     </div>
+  )
+}
+
+export default function StudentTugasPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex h-screen items-center justify-center bg-gradient-to-br from-pink-100 via-purple-100 to-blue-200">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-purple-200 border-t-purple-600"></div>
+      </div>
+    }>
+      <StudentTugasContent />
+    </Suspense>
   )
 }
