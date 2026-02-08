@@ -215,6 +215,13 @@ model HasilKuis {
   waktuSelesai DateTime?
   createdAt   DateTime @default(now())
   
+  // New fields for video submission and grading
+  videoUrl    String?  @db.Text
+  catatan     String?  @db.Text
+  nilai       Float?
+  gradedAt    DateTime?
+  submittedAt DateTime?
+  
   // Relations
   kuis        Kuis     @relation(fields: [kuisId], references: [id], onDelete: Cascade)
   siswa       Siswa    @relation(fields: [siswaId], references: [id], onDelete: Cascade)
