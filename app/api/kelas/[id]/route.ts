@@ -28,7 +28,7 @@ export async function GET(
             nilai: true
           }
         },
-        kuis: {
+        tugas: {
           select: {
             id: true,
             judul: true,

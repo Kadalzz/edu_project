@@ -24,9 +24,9 @@ export async function POST(
     }
 
     // Check if already submitted
-    const existingSubmission = await prisma.hasilKuis.findFirst({
+    const existingSubmission = await prisma.hasilTugas.findFirst({
       where: {
-        kuisId: id,
+        tugasId: id,
         siswaId: siswaId
       }
     })
@@ -39,7 +39,7 @@ export async function POST(
     }
 
     // Check tugas exists and is active
-    const tugas = await prisma.kuis.findUnique({
+    const tugas = await prisma.tugas.findUnique({
       where: { id: id }
     })
 
@@ -66,9 +66,9 @@ export async function POST(
     }
 
     // Create submission
-    const submission = await prisma.hasilKuis.create({
+    const submission = await prisma.hasilTugas.create({
       data: {
-        kuisId: id,
+        tugasId: id,
         siswaId: siswaId,
         skorMaksimal: 100,
         videoUrl,

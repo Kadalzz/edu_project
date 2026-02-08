@@ -17,9 +17,9 @@ export async function GET(
       )
     }
 
-    const submission = await prisma.hasilKuis.findFirst({
+    const submission = await prisma.hasilTugas.findFirst({
       where: {
-        kuisId: id,
+        tugasId: id,
         siswaId: siswaId
       }
     })

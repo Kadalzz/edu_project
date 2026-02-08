@@ -34,9 +34,9 @@ export async function GET(
           },
           take: 30
         },
-        hasilKuis: {
+        hasilTugas: {
           include: {
-            kuis: true
+            tugas: true
           },
           orderBy: {
             createdAt: 'desc'
@@ -73,14 +73,14 @@ export async function GET(
     const completedAssignments = student.nilai.filter(n => n.nilai >= 60).length
     const totalAssignments = student.nilai.length
 
-    // Get pending quizzes (quizzes not yet taken)
-    const allQuizzes = await prisma.kuis.findMany({
+    // Get pending tugas (tugas not yet taken)
+    const allTugas = await prisma.tugas.findMany({
       where: {
         status: 'ACTIVE'
       }
     })
-    const takenQuizIds = student.hasilKuis.map(h => h.kuisId)
-    const pendingQuizzes = allQuizzes.filter(q => !takenQuizIds.includes(q.id))
+    const takenTugasIds = student.hasilTugas.map(h => h.tugasId)
+    const pendingTugas = allTugas.filter(t => !takenTugasIds.includes(t.id))
 
     return NextResponse.json({
       success: true,
@@ -97,16 +97,16 @@ export async function GET(
         assignmentsCompleted: completedAssignments,
         totalAssignments: totalAssignments,
         badges: student.badges.length,
-        pendingQuizzes: pendingQuizzes.length,
+        pendingTugas: pendingTugas.length,
         recentGrades: student.nilai.slice(0, 10).map(n => ({
           id: n.id,
           subject: n.mataPelajaran,
           grade: n.nilai,
           date: n.createdAt.toISOString()
         })),
-        recentQuizzes: student.hasilKuis.slice(0, 10).map(h => ({
+        recentTugas: student.hasilTugas.slice(0, 10).map(h => ({
           id: h.id,
-          title: h.kuis.judul,
+          title: h.tugas.judul,
           score: h.skor,
           passed: h.skor >= 60,
           date: h.createdAt.toISOString()

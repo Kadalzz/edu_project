@@ -40,9 +40,9 @@ export async function GET(request: Request) {
           },
           take: 30
         },
-        hasilKuis: {
+        hasilTugas: {
           include: {
-            kuis: true
+            tugas: true
           },
           orderBy: {
             createdAt: 'desc'
@@ -93,8 +93,8 @@ export async function GET(request: Request) {
           grade: n.nilai,
           date: n.createdAt.toISOString()
         })),
-        recentQuizzes: child.hasilKuis.slice(0, 5).map((h: any) => ({
-          title: h.kuis.judul,
+        recentTugas: child.hasilTugas.slice(0, 5).map((h: any) => ({
+          title: h.tugas.judul,
           score: h.skor,
           date: h.createdAt.toISOString()
         })),

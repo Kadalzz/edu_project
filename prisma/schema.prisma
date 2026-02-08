@@ -21,23 +21,23 @@ enum UserRole {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  password      String
-  role          UserRole
-  name          String
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  role      UserRole
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // Relations
-  guru          Guru?
-  siswaChildren Siswa[]   @relation("ParentToSiswa")
-  chatsSent     Chat[]    @relation("ChatFrom")
-  chatsReceived Chat[]    @relation("ChatTo")
-  notifications Notification[]
+  guru           Guru?
+  siswaChildren  Siswa[]               @relation("ParentToSiswa")
+  chatsSent      Chat[]                @relation("ChatFrom")
+  chatsReceived  Chat[]                @relation("ChatTo")
+  notifications  Notification[]
   laporanBelajar LaporanBelajarRumah[]
-  activityLogs  ActivityLog[]
-  
+  activityLogs   ActivityLog[]
+
   @@map("users")
 }
 
@@ -46,24 +46,24 @@ model User {
 // ============================================
 
 model Guru {
-  id          String   @id @default(cuid())
-  userId      String   @unique
-  nip         String?  @unique
-  phone       String?
-  address     String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  nip       String?  @unique
+  phone     String?
+  address   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // Relations
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  kelas       Kelas[]
-  nilai       Nilai[]
-  kuis        Kuis[]
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kelas           Kelas[]
+  nilai           Nilai[]
+  tugas           Tugas[]
   progressReports ProgressReport[]
-  jadwalTemu  JadwalTemu[]
-  materi      Materi[]
-  badges      Badge[]
-  
+  jadwalTemu      JadwalTemu[]
+  materi          Materi[]
+  badges          Badge[]
+
   @@map("guru")
 }
 
@@ -72,31 +72,31 @@ model Guru {
 // ============================================
 
 model Siswa {
-  id          String   @id @default(cuid())
-  nama        String
-  nis         String?  @unique
-  kelasId     String
-  parentId    String
-  pinCode     String?  @unique
-  qrCode      String?
-  tanggalLahir DateTime?
-  jenisKelamin String?
+  id              String    @id @default(cuid())
+  nama            String
+  nis             String?   @unique
+  kelasId         String
+  parentId        String
+  pinCode         String?   @unique
+  qrCode          String?
+  tanggalLahir    DateTime?
+  jenisKelamin    String?
   kebutuhanKhusus String?
-  catatan     String?  @db.Text
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+  catatan         String?   @db.Text
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
   // Relations
-  kelas       Kelas    @relation(fields: [kelasId], references: [id])
-  parent      User     @relation("ParentToSiswa", fields: [parentId], references: [id])
-  nilai       Nilai[]
-  hasilKuis   HasilKuis[]
+  kelas           Kelas                 @relation(fields: [kelasId], references: [id])
+  parent          User                  @relation("ParentToSiswa", fields: [parentId], references: [id])
+  nilai           Nilai[]
+  hasilTugas      HasilTugas[]
   progressReports ProgressReport[]
-  laporanBelajar LaporanBelajarRumah[]
-  absensi     Absensi[]
-  badges      Badge[]
-  jadwalTemu  JadwalTemu[]
-  
+  laporanBelajar  LaporanBelajarRumah[]
+  absensi         Absensi[]
+  badges          Badge[]
+  jadwalTemu      JadwalTemu[]
+
   @@map("siswa")
 }
 
@@ -113,13 +113,13 @@ model Kelas {
   deskripsi   String?  @db.Text
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
+
   // Relations
-  guru        Guru     @relation(fields: [guruId], references: [id])
-  siswa       Siswa[]
-  kuis        Kuis[]
-  materi      Materi[]
-  
+  guru   Guru     @relation(fields: [guruId], references: [id])
+  siswa  Siswa[]
+  tugas  Tugas[]
+  materi Materi[]
+
   @@map("kelas")
 }
 
@@ -128,122 +128,122 @@ model Kelas {
 // ============================================
 
 model Nilai {
-  id              String   @id @default(cuid())
-  siswaId         String
-  guruId          String
-  mataPelajaran   String
-  jenisNilai      String   // tugas, ujian, sikap, kuis
-  nilai           Float
-  nilaiMaksimal   Float    @default(100)
-  catatan         String?  @db.Text
-  tanggal         DateTime @default(now())
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
+  id            String   @id @default(cuid())
+  siswaId       String
+  guruId        String
+  mataPelajaran String
+  jenisNilai    String // tugas, ujian, sikap, kuis
+  nilai         Float
+  nilaiMaksimal Float    @default(100)
+  catatan       String?  @db.Text
+  tanggal       DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
   // Relations
-  siswa           Siswa    @relation(fields: [siswaId], references: [id], onDelete: Cascade)
-  guru            Guru     @relation(fields: [guruId], references: [id])
-  
+  siswa Siswa @relation(fields: [siswaId], references: [id], onDelete: Cascade)
+  guru  Guru  @relation(fields: [guruId], references: [id])
+
   @@map("nilai")
 }
 
 // ============================================
-// KUIS (QUIZ)
+// TUGAS (ASSIGNMENT)
 // ============================================
 
-enum KuisMode {
+enum TugasMode {
   LIVE
   HOMEWORK
 }
 
-enum KuisStatus {
+enum TugasStatus {
   DRAFT
   ACTIVE
   CLOSED
 }
 
-model Kuis {
-  id          String      @id @default(cuid())
-  guruId      String
-  kelasId     String?
-  judul       String
-  deskripsi   String?     @db.Text
-  mode        KuisMode
-  status      KuisStatus  @default(DRAFT)
-  pinCode     String?     @unique
-  durasi      Int?        // dalam menit
-  deadline    DateTime?
-  tanggalTampil DateTime?  // Kapan tugas mulai ditampilkan ke siswa
+model Tugas {
+  id            String      @id @default(cuid())
+  guruId        String
+  kelasId       String?
+  judul         String
+  deskripsi     String?     @db.Text
+  mode          TugasMode
+  status        TugasStatus @default(DRAFT)
+  pinCode       String?     @unique
+  durasi        Int? // dalam menit
+  deadline      DateTime?
+  tanggalTampil DateTime? // Kapan tugas mulai ditampilkan ke siswa
   mataPelajaran String?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
   // Relations
-  guru        Guru        @relation(fields: [guruId], references: [id])
-  kelas       Kelas?      @relation(fields: [kelasId], references: [id])
-  pertanyaan  Pertanyaan[]
-  hasilKuis   HasilKuis[]
-  
-  @@map("kuis")
+  guru       Guru         @relation(fields: [guruId], references: [id])
+  kelas      Kelas?       @relation(fields: [kelasId], references: [id])
+  pertanyaan Pertanyaan[]
+  hasilTugas HasilTugas[]
+
+  @@map("tugas")
 }
 
 model Pertanyaan {
-  id          String   @id @default(cuid())
-  kuisId      String
-  soal        String   @db.Text
-  tipeJawaban String   // multiple_choice, essay, true_false
-  pilihan     Json?    // array of choices for multiple choice
+  id           String   @id @default(cuid())
+  tugasId      String
+  soal         String   @db.Text
+  tipeJawaban  String // multiple_choice, essay, true_false
+  pilihan      Json? // array of choices for multiple choice
   jawabanBenar String? // untuk auto-grading
-  poin        Int      @default(10)
-  urutan      Int
-  createdAt   DateTime @default(now())
-  
+  poin         Int      @default(10)
+  urutan       Int
+  createdAt    DateTime @default(now())
+
   // Relations
-  kuis        Kuis     @relation(fields: [kuisId], references: [id], onDelete: Cascade)
-  jawaban     Jawaban[]
-  
+  tugas   Tugas     @relation(fields: [tugasId], references: [id], onDelete: Cascade)
+  jawaban Jawaban[]
+
   @@map("pertanyaan")
 }
 
-model HasilKuis {
-  id          String   @id @default(cuid())
-  kuisId      String
-  siswaId     String
-  skor        Float    @default(0)
+model HasilTugas {
+  id           String    @id @default(cuid())
+  tugasId      String
+  siswaId      String
+  skor         Float     @default(0)
   skorMaksimal Float
-  waktuMulai  DateTime @default(now())
+  waktuMulai   DateTime  @default(now())
   waktuSelesai DateTime?
-  createdAt   DateTime @default(now())
-  
+  createdAt    DateTime  @default(now())
+
   // New fields for video submission and grading
-  videoUrl    String?  @db.Text
-  catatan     String?  @db.Text
+  videoUrl    String?   @db.Text
+  catatan     String?   @db.Text
   nilai       Float?
   gradedAt    DateTime?
   submittedAt DateTime?
-  
+
   // Relations
-  kuis        Kuis     @relation(fields: [kuisId], references: [id], onDelete: Cascade)
-  siswa       Siswa    @relation(fields: [siswaId], references: [id], onDelete: Cascade)
-  jawaban     Jawaban[]
-  
-  @@unique([kuisId, siswaId])
-  @@map("hasil_kuis")
+  tugas   Tugas     @relation(fields: [tugasId], references: [id], onDelete: Cascade)
+  siswa   Siswa     @relation(fields: [siswaId], references: [id], onDelete: Cascade)
+  jawaban Jawaban[]
+
+  @@unique([tugasId, siswaId])
+  @@map("hasil_tugas")
 }
 
 model Jawaban {
-  id          String   @id @default(cuid())
-  hasilKuisId String
+  id           String   @id @default(cuid())
+  hasilTugasId String
   pertanyaanId String
-  jawaban     String   @db.Text
-  benar       Boolean?
-  poin        Float    @default(0)
-  createdAt   DateTime @default(now())
-  
+  jawaban      String   @db.Text
+  benar        Boolean?
+  poin         Float    @default(0)
+  createdAt    DateTime @default(now())
+
   // Relations
-  hasilKuis   HasilKuis  @relation(fields: [hasilKuisId], references: [id], onDelete: Cascade)
-  pertanyaan  Pertanyaan @relation(fields: [pertanyaanId], references: [id], onDelete: Cascade)
-  
+  hasilTugas HasilTugas @relation(fields: [hasilTugasId], references: [id], onDelete: Cascade)
+  pertanyaan Pertanyaan @relation(fields: [pertanyaanId], references: [id], onDelete: Cascade)
+
   @@map("jawaban")
 }
 
@@ -252,20 +252,20 @@ model Jawaban {
 // ============================================
 
 model ProgressReport {
-  id          String   @id @default(cuid())
-  siswaId     String
-  guruId      String
-  periode     String
+  id           String   @id @default(cuid())
+  siswaId      String
+  guruId       String
+  periode      String
   judulLaporan String
-  catatan     String   @db.Text
-  perkembangan Json?   // detailed progress data
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+  catatan      String   @db.Text
+  perkembangan Json? // detailed progress data
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
   // Relations
-  siswa       Siswa    @relation(fields: [siswaId], references: [id], onDelete: Cascade)
-  guru        Guru     @relation(fields: [guruId], references: [id])
-  
+  siswa Siswa @relation(fields: [siswaId], references: [id], onDelete: Cascade)
+  guru  Guru  @relation(fields: [guruId], references: [id])
+
   @@map("progress_reports")
 }
 
@@ -274,38 +274,38 @@ model ProgressReport {
 // ============================================
 
 model LaporanBelajarRumah {
-  id          String   @id @default(cuid())
-  siswaId     String
-  parentId    String
-  tanggal     DateTime @default(now())
-  durasi      Int?     // dalam menit
-  materi      String   @db.Text
-  kendala     String?  @db.Text
-  catatan     String?  @db.Text
-  mood        String?  // rating semangat belajar
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+  id        String   @id @default(cuid())
+  siswaId   String
+  parentId  String
+  tanggal   DateTime @default(now())
+  durasi    Int? // dalam menit
+  materi    String   @db.Text
+  kendala   String?  @db.Text
+  catatan   String?  @db.Text
+  mood      String? // rating semangat belajar
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // Relations
-  siswa       Siswa    @relation(fields: [siswaId], references: [id], onDelete: Cascade)
-  parent      User     @relation(fields: [parentId], references: [id])
+  siswa       Siswa         @relation(fields: [siswaId], references: [id], onDelete: Cascade)
+  parent      User          @relation(fields: [parentId], references: [id])
   dokumentasi Dokumentasi[]
-  
+
   @@map("laporan_belajar_rumah")
 }
 
 model Dokumentasi {
-  id          String   @id @default(cuid())
-  laporanId   String
-  fileUrl     String
-  fileType    String   // image, video, pdf
-  fileName    String
-  fileSize    Int?
-  createdAt   DateTime @default(now())
-  
+  id        String   @id @default(cuid())
+  laporanId String
+  fileUrl   String
+  fileType  String // image, video, pdf
+  fileName  String
+  fileSize  Int?
+  createdAt DateTime @default(now())
+
   // Relations
-  laporan     LaporanBelajarRumah @relation(fields: [laporanId], references: [id], onDelete: Cascade)
-  
+  laporan LaporanBelajarRumah @relation(fields: [laporanId], references: [id], onDelete: Cascade)
+
   @@map("dokumentasi")
 }
 
@@ -314,18 +314,18 @@ model Dokumentasi {
 // ============================================
 
 model Chat {
-  id          String   @id @default(cuid())
-  fromUserId  String
-  toUserId    String
-  siswaId     String?  // context untuk siswa mana
-  message     String   @db.Text
-  isRead      Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  
+  id         String   @id @default(cuid())
+  fromUserId String
+  toUserId   String
+  siswaId    String? // context untuk siswa mana
+  message    String   @db.Text
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
   // Relations
-  fromUser    User     @relation("ChatFrom", fields: [fromUserId], references: [id])
-  toUser      User     @relation("ChatTo", fields: [toUserId], references: [id])
-  
+  fromUser User @relation("ChatFrom", fields: [fromUserId], references: [id])
+  toUser   User @relation("ChatTo", fields: [toUserId], references: [id])
+
   @@map("chats")
 }
 
@@ -341,22 +341,22 @@ enum StatusJadwal {
 }
 
 model JadwalTemu {
-  id          String   @id @default(cuid())
-  guruId      String
-  parentId    String
-  siswaId     String
-  tanggal     DateTime
-  waktu       String
-  topik       String?  @db.Text
-  catatan     String?  @db.Text
-  status      StatusJadwal @default(PENDING)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+  id        String       @id @default(cuid())
+  guruId    String
+  parentId  String
+  siswaId   String
+  tanggal   DateTime
+  waktu     String
+  topik     String?      @db.Text
+  catatan   String?      @db.Text
+  status    StatusJadwal @default(PENDING)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
   // Relations
-  guru        Guru     @relation(fields: [guruId], references: [id])
-  siswa       Siswa    @relation(fields: [siswaId], references: [id])
-  
+  guru  Guru  @relation(fields: [guruId], references: [id])
+  siswa Siswa @relation(fields: [siswaId], references: [id])
+
   @@map("jadwal_temu")
 }
 
@@ -365,22 +365,22 @@ model JadwalTemu {
 // ============================================
 
 model Materi {
-  id          String   @id @default(cuid())
-  guruId      String
-  kelasId     String?
-  judul       String
-  deskripsi   String?  @db.Text
-  tipeMateri  String   // pdf, video, link
-  fileUrl     String?
-  konten      String?  @db.Text
+  id            String   @id @default(cuid())
+  guruId        String
+  kelasId       String?
+  judul         String
+  deskripsi     String?  @db.Text
+  tipeMateri    String // pdf, video, link
+  fileUrl       String?
+  konten        String?  @db.Text
   mataPelajaran String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
   // Relations
-  guru        Guru     @relation(fields: [guruId], references: [id])
-  kelas       Kelas?   @relation(fields: [kelasId], references: [id])
-  
+  guru  Guru   @relation(fields: [guruId], references: [id])
+  kelas Kelas? @relation(fields: [kelasId], references: [id])
+
   @@map("materi")
 }
 
@@ -389,19 +389,19 @@ model Materi {
 // ============================================
 
 model Badge {
-  id          String   @id @default(cuid())
-  siswaId     String
-  guruId      String
-  nama        String
-  deskripsi   String?
-  icon        String?
-  tipe        String   // achievement, reward, milestone
-  earnedAt    DateTime @default(now())
-  
+  id        String   @id @default(cuid())
+  siswaId   String
+  guruId    String
+  nama      String
+  deskripsi String?
+  icon      String?
+  tipe      String // achievement, reward, milestone
+  earnedAt  DateTime @default(now())
+
   // Relations
-  siswa       Siswa    @relation(fields: [siswaId], references: [id], onDelete: Cascade)
-  guru        Guru     @relation(fields: [guruId], references: [id])
-  
+  siswa Siswa @relation(fields: [siswaId], references: [id], onDelete: Cascade)
+  guru  Guru  @relation(fields: [guruId], references: [id])
+
   @@map("badges")
 }
 
@@ -417,17 +417,17 @@ enum StatusAbsensi {
 }
 
 model Absensi {
-  id          String   @id @default(cuid())
-  siswaId     String
-  tanggal     DateTime @default(now())
-  status      StatusAbsensi
-  keterangan  String?  @db.Text
-  waktu       DateTime @default(now())
-  createdAt   DateTime @default(now())
-  
+  id         String        @id @default(cuid())
+  siswaId    String
+  tanggal    DateTime      @default(now())
+  status     StatusAbsensi
+  keterangan String?       @db.Text
+  waktu      DateTime      @default(now())
+  createdAt  DateTime      @default(now())
+
   // Relations
-  siswa       Siswa    @relation(fields: [siswaId], references: [id], onDelete: Cascade)
-  
+  siswa Siswa @relation(fields: [siswaId], references: [id], onDelete: Cascade)
+
   @@map("absensi")
 }
 
@@ -436,18 +436,18 @@ model Absensi {
 // ============================================
 
 model Notification {
-  id          String   @id @default(cuid())
-  userId      String
-  title       String
-  content     String   @db.Text
-  type        String   // info, warning, success
-  link        String?
-  isRead      Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  content   String   @db.Text
+  type      String // info, warning, success
+  link      String?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
   // Relations
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@map("notifications")
 }
 
@@ -464,9 +464,9 @@ model ActivityLog {
   description String?  @db.Text
   ipAddress   String?
   createdAt   DateTime @default(now())
-  
+
   // Relations
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@map("activity_logs")
 }

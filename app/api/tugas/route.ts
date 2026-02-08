@@ -31,7 +31,7 @@ export async function GET(request: Request) {
       ]
     }
 
-    const kuis = await prisma.kuis.findMany({
+    const tugas = await prisma.tugas.findMany({
       where,
       include: {
         guru: {
@@ -55,7 +55,7 @@ export async function GET(request: Request) {
             poin: true
           }
         },
-        hasilKuis: {
+        hasilTugas: {
           select: {
             id: true,
             skor: true,
@@ -66,7 +66,7 @@ export async function GET(request: Request) {
         _count: {
           select: {
             pertanyaan: true,
-            hasilKuis: true
+            hasilTugas: true
           }
         }
       },
@@ -74,10 +74,10 @@ export async function GET(request: Request) {
     })
 
     // Calculate statistics for each quiz
-    const kuisWithStats = kuis.map((quiz: any) => {
-      const totalParticipants = quiz.hasilKuis.length
+    const tugasWithStats = tugas.map((quiz: any) => {
+      const totalParticipants = quiz.hasilTugas.length
       const avgScore = totalParticipants > 0
-        ? quiz.hasilKuis.reduce((sum: number, h: any) => sum + (h.skor / h.skorMaksimal * 100), 0) / totalParticipants
+        ? quiz.hasilTugas.reduce((sum: number, h: any) => sum + (h.skor / h.skorMaksimal * 100), 0) / totalParticipants
         : 0
 
       return {
@@ -88,9 +88,9 @@ export async function GET(request: Request) {
       }
     })
 
-    return NextResponse.json({ success: true, data: kuisWithStats })
+    return NextResponse.json({ success: true, data: tugasWithStats })
   } catch (error) {
-    console.error("Error fetching kuis:", error)
+    console.error("Error fetching tugas:", error)
     return NextResponse.json(
       { success: false, error: "Failed to fetch quizzes" },
       { status: 500 }
@@ -134,7 +134,7 @@ export async function POST(request: Request) {
       )
     }
 
-    const kuis = await prisma.kuis.create({
+    const tugas = await prisma.tugas.create({
       data: {
         guruId: guru.id,
         kelasId,
@@ -172,9 +172,9 @@ export async function POST(request: Request) {
       }
     })
 
-    return NextResponse.json({ success: true, data: kuis }, { status: 201 })
+    return NextResponse.json({ success: true, data: tugas }, { status: 201 })
   } catch (error) {
-    console.error("Error creating kuis:", error)
+    console.error("Error creating tugas:", error)
     return NextResponse.json(
       { success: false, error: "Failed to create tugas" },
       { status: 500 }

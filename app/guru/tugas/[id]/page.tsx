@@ -50,13 +50,13 @@ export default function DetailTugasPage() {
   const fetchTugasDetail = async () => {
     try {
       setLoading(true)
-      const response = await fetch(`/api/kuis/${params.id}`)
+      const response = await fetch(`/api/tugas/${params.id}`)
       const result = await response.json()
 
       if (result.success) {
         setTugas(result.data)
         // Fetch submissions
-        const submissionsRes = await fetch(`/api/kuis/${params.id}/submissions`)
+        const submissionsRes = await fetch(`/api/tugas/${params.id}/submissions`)
         const submissionsData = await submissionsRes.json()
         if (submissionsData.success) {
           setSubmissions(submissionsData.data || [])
@@ -74,7 +74,7 @@ export default function DetailTugasPage() {
 
   const handleGradeSubmission = async (submissionId: string, nilai: number, catatan: string) => {
     try {
-      const response = await fetch(`/api/kuis/${params.id}/submissions/${submissionId}`, {
+      const response = await fetch(`/api/tugas/${params.id}/submissions/${submissionId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nilai, catatan })

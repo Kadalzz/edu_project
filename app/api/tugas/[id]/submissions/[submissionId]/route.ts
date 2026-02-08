@@ -17,7 +17,7 @@ export async function PATCH(
       )
     }
 
-    const submission = await prisma.hasilKuis.update({
+    const submission = await prisma.hasilTugas.update({
       where: {
         id: submissionId
       },

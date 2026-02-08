@@ -7,15 +7,15 @@ async function deleteAllTugas() {
     console.log('🗑️  Menghapus semua tugas...')
     
     // Delete related records first
-    const deletedHasilKuis = await prisma.hasilKuis.deleteMany({})
-    console.log(`✅ Dihapus ${deletedHasilKuis.count} hasil kuis`)
+    const deletedHasilTugas = await prisma.hasilTugas.deleteMany({})
+    console.log(`✅ Dihapus ${deletedHasilTugas.count} hasil tugas`)
     
     const deletedPertanyaan = await prisma.pertanyaan.deleteMany({})
     console.log(`✅ Dihapus ${deletedPertanyaan.count} pertanyaan`)
     
-    // Delete all tugas/kuis
-    const deletedKuis = await prisma.kuis.deleteMany({})
-    console.log(`✅ Dihapus ${deletedKuis.count} tugas`)
+    // Delete all tugas
+    const deletedTugas = await prisma.tugas.deleteMany({})
+    console.log(`✅ Dihapus ${deletedTugas.count} tugas`)
     
     console.log('✨ Semua tugas berhasil dihapus!')
   } catch (error) {

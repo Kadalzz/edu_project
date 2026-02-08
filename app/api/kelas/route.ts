@@ -44,7 +44,7 @@ export async function GET(request: Request) {
         _count: {
           select: {
             siswa: true,
-            kuis: true,
+            tugas: true,
             materi: true
           }
         }

@@ -21,9 +21,9 @@ export async function GET(
         nilai: {
           orderBy: { createdAt: "desc" }
         },
-        hasilKuis: {
+        hasilTugas: {
           include: {
-            kuis: {
+            tugas: {
               select: {
                 judul: true,
                 mataPelajaran: true
@@ -108,8 +108,8 @@ export async function DELETE(
     
     // Delete all related records first to avoid foreign key constraints
     await prisma.$transaction([
-      // Delete hasil kuis
-      prisma.hasilKuis.deleteMany({
+      // Delete hasil tugas
+      prisma.hasilTugas.deleteMany({
         where: { siswaId: params.id }
       }),
       // Delete nilai

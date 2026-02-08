@@ -52,21 +52,21 @@ async function deleteAllUsers() {
             // Delete progress reports
             await tx.progressReport.deleteMany({ where: { guruId: guru.id } })
             
-            // Delete kuis and related data
-            const kuisList = await tx.kuis.findMany({ 
+            // Delete tugas and related data
+            const tugasList = await tx.tugas.findMany({ 
               where: { guruId: guru.id },
               select: { id: true }
             })
-            for (const kuis of kuisList) {
+            for (const tugas of tugasList) {
               await tx.jawaban.deleteMany({ 
                 where: { 
-                  hasilKuis: { kuisId: kuis.id } 
+                  hasilTugas: { tugasId: tugas.id } 
                 } 
               })
-              await tx.hasilKuis.deleteMany({ where: { kuisId: kuis.id } })
-              await tx.pertanyaan.deleteMany({ where: { kuisId: kuis.id } })
+              await tx.hasilTugas.deleteMany({ where: { tugasId: tugas.id } })
+              await tx.pertanyaan.deleteMany({ where: { tugasId: tugas.id } })
             }
-            await tx.kuis.deleteMany({ where: { guruId: guru.id } })
+            await tx.tugas.deleteMany({ where: { guruId: guru.id } })
             
             // Delete nilai
             await tx.nilai.deleteMany({ where: { guruId: guru.id } })
@@ -82,7 +82,7 @@ async function deleteAllUsers() {
                 // Delete siswa related data
                 await tx.badge.deleteMany({ where: { siswaId: siswa.id } })
                 await tx.absensi.deleteMany({ where: { siswaId: siswa.id } })
-                await tx.hasilKuis.deleteMany({ where: { siswaId: siswa.id } })
+                await tx.hasilTugas.deleteMany({ where: { siswaId: siswa.id } })
                 await tx.nilai.deleteMany({ where: { siswaId: siswa.id } })
                 await tx.progressReport.deleteMany({ where: { siswaId: siswa.id } })
                 
@@ -119,20 +119,20 @@ async function deleteAllUsers() {
             await tx.jadwalTemu.deleteMany({ where: { guruId: guru.id } })
             await tx.progressReport.deleteMany({ where: { guruId: guru.id } })
             
-            const kuisList = await tx.kuis.findMany({ 
+            const tugasList = await tx.tugas.findMany({ 
               where: { guruId: guru.id },
               select: { id: true }
             })
-            for (const kuis of kuisList) {
+            for (const tugas of tugasList) {
               await tx.jawaban.deleteMany({ 
                 where: { 
-                  hasilKuis: { kuisId: kuis.id } 
+                  hasilTugas: { tugasId: tugas.id } 
                 } 
               })
-              await tx.hasilKuis.deleteMany({ where: { kuisId: kuis.id } })
-              await tx.pertanyaan.deleteMany({ where: { kuisId: kuis.id } })
+              await tx.hasilTugas.deleteMany({ where: { tugasId: tugas.id } })
+              await tx.pertanyaan.deleteMany({ where: { tugasId: tugas.id } })
             }
-            await tx.kuis.deleteMany({ where: { guruId: guru.id } })
+            await tx.tugas.deleteMany({ where: { guruId: guru.id } })
             await tx.nilai.deleteMany({ where: { guruId: guru.id } })
             await tx.kelas.deleteMany({ where: { guruId: guru.id } })
             await tx.guru.delete({ where: { id: guru.id } })
@@ -156,7 +156,7 @@ async function deleteAllUsers() {
                 // Delete siswa related data
                 await tx.badge.deleteMany({ where: { siswaId: siswa.id } })
                 await tx.absensi.deleteMany({ where: { siswaId: siswa.id } })
-                await tx.hasilKuis.deleteMany({ where: { siswaId: siswa.id } })
+                await tx.hasilTugas.deleteMany({ where: { siswaId: siswa.id } })
                 await tx.nilai.deleteMany({ where: { siswaId: siswa.id } })
                 await tx.progressReport.deleteMany({ where: { siswaId: siswa.id } })
                 await tx.jadwalTemu.deleteMany({ where: { siswaId: siswa.id } })

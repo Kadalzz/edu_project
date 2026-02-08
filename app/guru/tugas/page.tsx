@@ -50,7 +50,7 @@ export default function TugasPage() {
   const fetchTugas = async () => {
     try {
       setLoading(true)
-      const response = await fetch('/api/kuis')
+      const response = await fetch('/api/tugas')
       const result = await response.json()
       
       if (result.success) {
@@ -107,7 +107,7 @@ export default function TugasPage() {
         console.log('File to upload:', tugasForm.file.name)
       }
 
-      const response = await fetch('/api/kuis', {
+      const response = await fetch('/api/tugas', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -153,7 +153,7 @@ export default function TugasPage() {
     if (!confirm('Yakin ingin menghapus tugas ini?')) return
 
     try {
-      const response = await fetch(`/api/kuis/${id}`, {
+      const response = await fetch(`/api/tugas/${id}`, {
         method: 'DELETE'
       })
 

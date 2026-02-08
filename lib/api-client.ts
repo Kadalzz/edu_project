@@ -3,7 +3,7 @@
  * 
  * Usage:
  * import { apiClient } from '@/lib/api-client'
- * const data = await apiClient.kuis.getAll({ guruId: 'xxx' })
+ * const data = await apiClient.tugas.getAll({ guruId: 'xxx' })
  */
 
 type ApiResponse<T> = {
@@ -78,8 +78,8 @@ export const siswaApi = {
   },
 }
 
-// Kuis API
-export const kuisApi = {
+// Tugas API
+export const tugasApi = {
   async getAll(filters?: {
     guruId?: string
     kelasId?: string
@@ -92,11 +92,11 @@ export const kuisApi = {
     if (filters?.status) params.set('status', filters.status)
     if (filters?.search) params.set('search', filters.search)
     
-    return apiFetch<any[]>(`/api/kuis?${params}`)
+    return apiFetch<any[]>(`/api/tugas?${params}`)
   },
 
   async getById(id: string) {
-    return apiFetch<any>(`/api/kuis/${id}`)
+    return apiFetch<any>(`/api/tugas/${id}`)
   },
 
   async create(data: {
@@ -116,21 +116,21 @@ export const kuisApi = {
       poin: number
     }>
   }) {
-    return apiFetch<any>('/api/kuis', {
+    return apiFetch<any>('/api/tugas', {
       method: 'POST',
       body: JSON.stringify(data),
     })
   },
 
   async update(id: string, data: Partial<any>) {
-    return apiFetch<any>(`/api/kuis/${id}`, {
+    return apiFetch<any>(`/api/tugas/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(data),
     })
   },
 
   async delete(id: string) {
-    return apiFetch<void>(`/api/kuis/${id}`, {
+    return apiFetch<void>(`/api/tugas/${id}`, {
       method: 'DELETE',
     })
   },
@@ -384,7 +384,7 @@ export const notificationsApi = {
 // Export combined API client
 export const apiClient = {
   siswa: siswaApi,
-  kuis: kuisApi,
+  tugas: tugasApi,
   materi: materiApi,
   chat: chatApi,
   kelas: kelasApi,

@@ -18,7 +18,7 @@ export default function StudentTugasPage() {
     try {
       setLoading(true)
       // This will fetch tugas/kuis for the student  
-      const response = await fetch('/api/kuis')
+      const response = await fetch('/api/tugas')
       const result = await response.json()
       
       if (result.success) {

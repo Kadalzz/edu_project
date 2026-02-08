@@ -8,9 +8,9 @@ export async function GET(
   try {
     const { id } = await params
     // Get all submissions for this tugas
-    const submissions = await prisma.hasilKuis.findMany({
+    const submissions = await prisma.hasilTugas.findMany({
       where: {
-        kuisId: id
+        tugasId: id
       },
       include: {
         siswa: {

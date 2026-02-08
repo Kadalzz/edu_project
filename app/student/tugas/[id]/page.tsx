@@ -42,14 +42,14 @@ export default function KerjakanTugasPage() {
   const fetchTugasDetail = async () => {
     try {
       setLoading(true)
-      const response = await fetch(`/api/kuis/${params.id}`)
+      const response = await fetch(`/api/tugas/${params.id}`)
       const result = await response.json()
 
       if (result.success) {
         setTugas(result.data)
         
         // Check if already submitted
-        const submissionRes = await fetch(`/api/kuis/${params.id}/my-submission`)
+        const submissionRes = await fetch(`/api/tugas/${params.id}/my-submission`)
         const submissionData = await submissionRes.json()
         if (submissionData.success && submissionData.data) {
           setMySubmission(submissionData.data)
@@ -101,7 +101,7 @@ export default function KerjakanTugasPage() {
       reader.onloadend = async () => {
         const videoDataUrl = reader.result as string
 
-        const response = await fetch(`/api/kuis/${params.id}/submit`, {
+        const response = await fetch(`/api/tugas/${params.id}/submit`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

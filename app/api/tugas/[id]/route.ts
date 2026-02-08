@@ -9,7 +9,7 @@ export async function GET(
   try {
     const { id } = await context.params
 
-    const kuis: any = await prisma.kuis.findUnique({
+    const tugas: any = await prisma.tugas.findUnique({
       where: { id },
       include: {
         guru: {
@@ -34,7 +34,7 @@ export async function GET(
         pertanyaan: {
           orderBy: { urutan: "asc" }
         },
-        hasilKuis: {
+        hasilTugas: {
           include: {
             siswa: {
               select: {
@@ -48,7 +48,7 @@ export async function GET(
       }
     })
 
-    if (!kuis) {
+    if (!tugas) {
       return NextResponse.json(
         { success: false, error: "Quiz not found" },
         { status: 404 }
@@ -56,25 +56,25 @@ export async function GET(
     }
 
     // Calculate statistics
-    const totalQuestions = kuis.pertanyaan.length
-    const totalParticipants = kuis.hasilKuis.length
+    const totalQuestions = tugas.pertanyaan.length
+    const totalParticipants = tugas.hasilTugas.length
     const avgScore = totalParticipants > 0
-      ? kuis.hasilKuis.reduce((sum: number, h: any) => sum + (h.skor / h.skorMaksimal * 100), 0) / totalParticipants
+      ? tugas.hasilTugas.reduce((sum: number, h: any) => sum + (h.skor / h.skorMaksimal * 100), 0) / totalParticipants
       : 0
 
-    const kuisWithStats = {
-      ...kuis,
+    const tugasWithStats = {
+      ...tugas,
       statistics: {
         totalQuestions,
         totalParticipants,
         avgScore: Math.round(avgScore),
-        maxScore: kuis.pertanyaan.reduce((sum: number, p: any) => sum + p.poin, 0)
+        maxScore: tugas.pertanyaan.reduce((sum: number, p: any) => sum + p.poin, 0)
       }
     }
 
-    return NextResponse.json({ success: true, data: kuisWithStats })
+    return NextResponse.json({ success: true, data: tugasWithStats })
   } catch (error) {
-    console.error("Error fetching kuis:", error)
+    console.error("Error fetching tugas:", error)
     return NextResponse.json(
       { success: false, error: "Failed to fetch quiz" },
       { status: 500 }
@@ -103,11 +103,11 @@ export async function PATCH(
     } = body
 
     // Check if quiz exists
-    const existingKuis = await prisma.kuis.findUnique({
+    const existingTugas = await prisma.tugas.findUnique({
       where: { id }
     })
 
-    if (!existingKuis) {
+    if (!existingTugas) {
       return NextResponse.json(
         { success: false, error: "Quiz not found" },
         { status: 404 }
@@ -129,7 +129,7 @@ export async function PATCH(
     if (pertanyaan) {
       // Delete existing questions
       await prisma.pertanyaan.deleteMany({
-        where: { kuisId: id }
+        where: { tugasId: id }
       })
 
       // Create new questions
@@ -145,7 +145,7 @@ export async function PATCH(
       }
     }
 
-    const kuis = await prisma.kuis.update({
+    const tugas = await prisma.tugas.update({
       where: { id },
       data: updateData,
       include: {
@@ -163,9 +163,9 @@ export async function PATCH(
       }
     })
 
-    return NextResponse.json({ success: true, data: kuis })
+    return NextResponse.json({ success: true, data: tugas })
   } catch (error) {
-    console.error("Error updating kuis:", error)
+    console.error("Error updating tugas:", error)
     return NextResponse.json(
       { success: false, error: "Failed to update quiz" },
       { status: 500 }
@@ -182,14 +182,14 @@ export async function DELETE(
     const { id } = await context.params
 
     // Check if quiz exists
-    const existingKuis = await prisma.kuis.findUnique({
+    const existingTugas = await prisma.tugas.findUnique({
       where: { id },
       include: {
-        hasilKuis: true
+        hasilTugas: true
       }
     })
 
-    if (!existingKuis) {
+    if (!existingTugas) {
       return NextResponse.json(
         { success: false, error: "Quiz not found" },
         { status: 404 }
@@ -197,7 +197,7 @@ export async function DELETE(
     }
 
     // Check if quiz has results
-    if (existingKuis.hasilKuis.length > 0) {
+    if (existingTugas.hasilTugas.length > 0) {
       return NextResponse.json(
         { 
           success: false, 
@@ -209,11 +209,11 @@ export async function DELETE(
 
     // Delete pertanyaan first (cascade)
     await prisma.pertanyaan.deleteMany({
-      where: { kuisId: id }
+      where: { tugasId: id }
     })
 
     // Delete quiz
-    await prisma.kuis.delete({
+    await prisma.tugas.delete({
       where: { id }
     })
 
@@ -222,7 +222,7 @@ export async function DELETE(
       message: "Quiz deleted successfully" 
     })
   } catch (error) {
-    console.error("Error deleting kuis:", error)
+    console.error("Error deleting tugas:", error)
     return NextResponse.json(
       { success: false, error: "Failed to delete quiz" },
       { status: 500 }

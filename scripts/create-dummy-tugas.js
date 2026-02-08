@@ -53,7 +53,7 @@ async function createDummyTugas() {
     const finalGuru = await prisma.guru.findFirst()
     
     // Create tugas that should be visible now
-    const tugas1 = await prisma.kuis.create({
+    const tugas1 = await prisma.tugas.create({
       data: {
         guruId: finalGuru.id,
         judul: "Tugas Matematika - Perkalian",
@@ -72,7 +72,7 @@ async function createDummyTugas() {
     console.log(`   Status: ${tugas1.status}\n`)
 
     // Create tugas without tanggalTampil (should be visible)
-    const tugas2 = await prisma.kuis.create({
+    const tugas2 = await prisma.tugas.create({
       data: {
         guruId: finalGuru.id,
         judul: "PR Bahasa Indonesia - Menulis Cerita",
@@ -91,7 +91,7 @@ async function createDummyTugas() {
     console.log(`   Status: ${tugas2.status}\n`)
 
     // Create tugas scheduled for tomorrow (should NOT be visible yet)
-    const tugas3 = await prisma.kuis.create({
+    const tugas3 = await prisma.tugas.create({
       data: {
         guruId: finalGuru.id,
         judul: "Tugas IPA - Eksperimen Sederhana",
@@ -110,7 +110,7 @@ async function createDummyTugas() {
     console.log(`   Status: ${tugas3.status}\n`)
 
     console.log('📊 Ringkasan:')
-    const totalTugas = await prisma.kuis.count()
+    const totalTugas = await prisma.tugas.count()
     console.log(`   Total tugas di database: ${totalTugas}`)
     console.log(`   Yang seharusnya terlihat siswa: 2 (Tugas 1 & 2)`)
     console.log(`   Yang dijadwalkan: 1 (Tugas 3 - besok)\n`)
