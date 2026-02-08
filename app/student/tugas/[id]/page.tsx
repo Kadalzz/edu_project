@@ -56,6 +56,7 @@ function KerjakanTugasContent() {
   const searchParams = useSearchParams()
   const studentIdFromUrl = searchParams.get('studentId')
   const [studentId, setStudentId] = useState<string | null>(studentIdFromUrl)
+  const [studentValid, setStudentValid] = useState<boolean | null>(null)
   const [tugas, setTugas] = useState<Tugas | null>(null)
   const [hasilTugas, setHasilTugas] = useState<HasilTugas | null>(null)
   const [mySubmission, setMySubmission] = useState<MySubmission | null>(null)
@@ -69,21 +70,48 @@ function KerjakanTugasContent() {
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null)
   const [timeDisplay, setTimeDisplay] = useState<string>('')
 
+  // Validate studentId by checking if siswa exists
+  const validateStudentId = async (id: string): Promise<boolean> => {
+    try {
+      const response = await fetch(`/api/siswa/${id}`)
+      const result = await response.json()
+      return result.success && result.data
+    } catch (error) {
+      console.error('Error validating student ID:', error)
+      return false
+    }
+  }
+
   // Get studentId from URL or localStorage or API
   useEffect(() => {
     const getStudentId = async () => {
+      let idToValidate: string | null = null
+      
       // Priority: URL > localStorage > API
       if (studentIdFromUrl) {
-        setStudentId(studentIdFromUrl)
-        localStorage.setItem('eduspecial_studentId', studentIdFromUrl)
-        return
+        idToValidate = studentIdFromUrl
+      } else {
+        // Check localStorage
+        const storedStudentId = localStorage.getItem('eduspecial_studentId')
+        if (storedStudentId) {
+          idToValidate = storedStudentId
+        }
       }
       
-      // Check localStorage
-      const storedStudentId = localStorage.getItem('eduspecial_studentId')
-      if (storedStudentId) {
-        setStudentId(storedStudentId)
-        return
+      // If we have an ID, validate it
+      if (idToValidate) {
+        const isValid = await validateStudentId(idToValidate)
+        if (isValid) {
+          setStudentId(idToValidate)
+          setStudentValid(true)
+          localStorage.setItem('eduspecial_studentId', idToValidate)
+          return
+        } else {
+          // Invalid studentId - clear localStorage and redirect
+          localStorage.removeItem('eduspecial_studentId')
+          setStudentValid(false)
+          return
+        }
       }
       
       // Try to get from parent's children API
@@ -93,10 +121,14 @@ function KerjakanTugasContent() {
         if (result.success && result.data && result.data.length > 0) {
           const firstChildId = result.data[0].id
           setStudentId(firstChildId)
+          setStudentValid(true)
           localStorage.setItem('eduspecial_studentId', firstChildId)
+        } else {
+          setStudentValid(false)
         }
       } catch (error) {
         console.error('Error getting student ID:', error)
+        setStudentValid(false)
       }
     }
     
@@ -300,7 +332,28 @@ function KerjakanTugasContent() {
     }
   }
 
-  if (loading) {
+  // Show error if student ID is invalid
+  if (studentValid === false) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-100 to-blue-200 flex items-center justify-center">
+        <div className="text-center bg-white/80 backdrop-blur-xl rounded-3xl p-8 shadow-2xl max-w-md">
+          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Siswa Tidak Ditemukan</h2>
+          <p className="text-gray-600 mb-4">
+            Data siswa tidak ditemukan. Silakan login kembali.
+          </p>
+          <Link 
+            href="/login" 
+            className="inline-block bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-xl font-semibold hover:from-purple-600 hover:to-pink-600 transition-all"
+          >
+            Login Kembali
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  if (loading || studentValid === null) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-100 to-blue-200 flex items-center justify-center">
         <div className="text-center">
