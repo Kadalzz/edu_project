@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import prisma from '@/lib/prisma'
 
 export async function GET(
@@ -8,23 +6,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session || !session.user) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
-
-    // Get all submissions for this tugas (guru only)
-    if (session.user.role !== 'GURU') {
-      return NextResponse.json(
-        { success: false, error: 'Only teachers can view all submissions' },
-        { status: 403 }
-      )
-    }
-
+    // Get all submissions for this tugas
     const submissions = await prisma.hasilKuis.findMany({
       where: {
         kuisId: params.id
@@ -33,7 +15,8 @@ export async function GET(
         siswa: {
           select: {
             id: true,
-            name: true
+            nama: true,
+            nis: true
           }
         }
       },

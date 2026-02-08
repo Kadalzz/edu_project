@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import prisma from '@/lib/prisma'
 
 export async function POST(
@@ -8,23 +6,14 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session || !session.user) {
+    const { siswaId, videoUrl, catatan } = await req.json()
+
+    if (!siswaId) {
       return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
+        { success: false, error: 'Siswa ID required' },
+        { status: 400 }
       )
     }
-
-    if (session.user.role !== 'SISWA') {
-      return NextResponse.json(
-        { success: false, error: 'Only students can submit assignments' },
-        { status: 403 }
-      )
-    }
-
-    const { videoUrl, catatan } = await req.json()
 
     if (!videoUrl) {
       return NextResponse.json(
@@ -37,7 +26,7 @@ export async function POST(
     const existingSubmission = await prisma.hasilKuis.findFirst({
       where: {
         kuisId: params.id,
-        siswaId: session.user.id
+        siswaId: siswaId
       }
     })
 
@@ -79,10 +68,10 @@ export async function POST(
     const submission = await prisma.hasilKuis.create({
       data: {
         kuisId: params.id,
-        siswaId: session.user.id,
+        siswaId: siswaId,
+        skorMaksimal: 100,
         videoUrl,
         catatan: catatan || null,
-        skorMaksimal: 100,
         submittedAt: new Date(),
         waktuSelesai: new Date()
       }

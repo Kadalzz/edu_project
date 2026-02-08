@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import prisma from '@/lib/prisma'
 
 export async function GET(
@@ -8,26 +6,20 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session || !session.user) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
+    const { searchParams } = new URL(req.url)
+    const siswaId = searchParams.get('siswaId')
 
-    if (session.user.role !== 'SISWA') {
+    if (!siswaId) {
       return NextResponse.json(
-        { success: false, error: 'Only students can check their submission' },
-        { status: 403 }
+        { success: false, error: 'Siswa ID required' },
+        { status: 400 }
       )
     }
 
     const submission = await prisma.hasilKuis.findFirst({
       where: {
         kuisId: params.id,
-        siswaId: session.user.id
+        siswaId: siswaId
       }
     })
 
