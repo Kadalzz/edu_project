@@ -166,26 +166,40 @@ export async function POST(req: NextRequest) {
         orderBy: { createdAt: 'asc' },
       })
 
-      // If no class exists, we need to find a guru to create default class
+      // If no class exists, create system guru and default class
       if (!defaultClass) {
-        const firstGuru = await prisma.guru.findFirst()
+        let firstGuru = await prisma.guru.findFirst()
         
-        if (firstGuru) {
-          // Create a default class with first guru
-          defaultClass = await prisma.kelas.create({
+        if (!firstGuru) {
+          // Create system user for default guru
+          const systemPassword = await bcrypt.hash('system123', 10)
+          const systemUser = await prisma.user.create({
             data: {
-              nama: "Kelas Utama",
-              tahunAjaran: new Date().getFullYear().toString(),
-              guruId: firstGuru.id,
-              deskripsi: "Kelas default untuk semua siswa",
+              name: "Guru System",
+              email: `system.guru.${Date.now()}@eduspecial.system`,
+              password: systemPassword,
+              role: "GURU",
             },
           })
-        } else {
-          return NextResponse.json(
-            { error: "Belum ada guru terdaftar. Mohon buat akun guru terlebih dahulu." },
-            { status: 400 }
-          )
+
+          // Create system guru profile
+          firstGuru = await prisma.guru.create({
+            data: {
+              userId: systemUser.id,
+              nip: `SYS${Date.now()}`,
+            },
+          })
         }
+        
+        // Create a default class
+        defaultClass = await prisma.kelas.create({
+          data: {
+            nama: "Kelas Utama",
+            tahunAjaran: new Date().getFullYear().toString(),
+            guruId: firstGuru.id,
+            deskripsi: "Kelas default untuk semua siswa. Siswa akan dipindahkan ke kelas yang sesuai oleh guru.",
+          },
+        })
       }
 
       // Create student profile
