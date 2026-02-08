@@ -1,131 +1,186 @@
 "use client"
 
-import { BarChart2, Search, Plus, Filter, Download, Award, TrendingUp, Users, Edit, Trash2, Save } from "lucide-react"
-import { useState, useEffect } from "react"
+import { BarChart2, Search, Plus, Download, Award, TrendingUp, Users, Trash2, Save, Loader2 } from "lucide-react"
+import { useState, useEffect, useCallback } from "react"
 
 interface Student {
   id: string
   nama: string
   nis: string
+  kelas: string
+  nilaiKategori: { kategoriId: string; nilai: number }[]
 }
 
 interface Category {
   id: string
   name: string
-}
-
-interface GradeEntry {
-  studentId: string
-  categoryId: string
-  score: number
+  deskripsi?: string
+  urutan: number
 }
 
 export default function PenilaianPage() {
   const [students, setStudents] = useState<Student[]>([])
   const [categories, setCategories] = useState<Category[]>([])
-  const [grades, setGrades] = useState<GradeEntry[]>([])
   const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [showAddCategoryModal, setShowAddCategoryModal] = useState(false)
   const [newCategoryName, setNewCategoryName] = useState("")
   const [editingCell, setEditingCell] = useState<{studentId: string, categoryId: string} | null>(null)
+  const [pendingChanges, setPendingChanges] = useState<Map<string, number>>(new Map())
 
-  useEffect(() => {
-    fetchData()
-  }, [])
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true)
-      // Fetch students
-      const response = await fetch('/api/siswa')
+      const response = await fetch('/api/penilaian/nilai')
       const result = await response.json()
-      if (result.success) {
-        setStudents(result.data.map((s: any) => ({
-          id: s.id,
-          nama: s.nama,
-          nis: s.nis || '-'
-        })))
-      }
-
-      // Load categories and grades from localStorage (temporary)
-      const savedCategories = localStorage.getItem('penilaianCategories')
-      const savedGrades = localStorage.getItem('penilaianGrades')
       
-      if (savedCategories) {
-        setCategories(JSON.parse(savedCategories))
-      }
-      if (savedGrades) {
-        setGrades(JSON.parse(savedGrades))
+      if (result.success) {
+        setCategories(result.data.categories)
+        setStudents(result.data.students)
       }
     } catch (error) {
       console.error('Error fetching data:', error)
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
-  const handleAddCategory = () => {
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
+
+  const handleAddCategory = async () => {
     if (!newCategoryName.trim()) return
     
-    const newCategory: Category = {
-      id: Date.now().toString(),
-      name: newCategoryName.trim()
+    try {
+      const response = await fetch('/api/penilaian/kategori', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nama: newCategoryName.trim() })
+      })
+      
+      const result = await response.json()
+      if (result.success) {
+        setNewCategoryName("")
+        setShowAddCategoryModal(false)
+        fetchData()
+      }
+    } catch (error) {
+      console.error('Error adding category:', error)
     }
-    
-    const updatedCategories = [...categories, newCategory]
-    setCategories(updatedCategories)
-    localStorage.setItem('penilaianCategories', JSON.stringify(updatedCategories))
-    
-    setNewCategoryName("")
-    setShowAddCategoryModal(false)
   }
 
-  const handleDeleteCategory = (categoryId: string) => {
+  const handleDeleteCategory = async (categoryId: string) => {
     if (!confirm('Yakin ingin menghapus kategori ini? Semua nilai di kategori ini akan terhapus.')) return
     
-    const updatedCategories = categories.filter(c => c.id !== categoryId)
-    const updatedGrades = grades.filter(g => g.categoryId !== categoryId)
-    
-    setCategories(updatedCategories)
-    setGrades(updatedGrades)
-    localStorage.setItem('penilaianCategories', JSON.stringify(updatedCategories))
-    localStorage.setItem('penilaianGrades', JSON.stringify(updatedGrades))
+    try {
+      const response = await fetch(`/api/penilaian/kategori?id=${categoryId}`, {
+        method: 'DELETE'
+      })
+      
+      const result = await response.json()
+      if (result.success) {
+        fetchData()
+      }
+    } catch (error) {
+      console.error('Error deleting category:', error)
+    }
   }
 
   const getGrade = (studentId: string, categoryId: string): number => {
-    const entry = grades.find(g => g.studentId === studentId && g.categoryId === categoryId)
-    return entry ? entry.score : 0
+    const key = `${studentId}-${categoryId}`
+    if (pendingChanges.has(key)) {
+      return pendingChanges.get(key) || 0
+    }
+    const student = students.find(s => s.id === studentId)
+    const entry = student?.nilaiKategori.find(n => n.kategoriId === categoryId)
+    return entry ? entry.nilai : 0
   }
 
   const handleGradeChange = (studentId: string, categoryId: string, score: number) => {
     const numericScore = Math.max(0, Math.min(100, score || 0))
-    
-    const existingIndex = grades.findIndex(g => g.studentId === studentId && g.categoryId === categoryId)
-    let updatedGrades: GradeEntry[]
-    
-    if (existingIndex >= 0) {
-      updatedGrades = [...grades]
-      updatedGrades[existingIndex] = { studentId, categoryId, score: numericScore }
-    } else {
-      updatedGrades = [...grades, { studentId, categoryId, score: numericScore }]
+    const key = `${studentId}-${categoryId}`
+    const newPendingChanges = new Map(pendingChanges)
+    newPendingChanges.set(key, numericScore)
+    setPendingChanges(newPendingChanges)
+  }
+
+  const saveGrade = async (studentId: string, categoryId: string, score: number) => {
+    try {
+      await fetch('/api/penilaian/nilai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ siswaId: studentId, kategoriId: categoryId, nilai: score })
+      })
+      
+      // Update local state
+      setStudents(prev => prev.map(s => {
+        if (s.id === studentId) {
+          const existingIdx = s.nilaiKategori.findIndex(n => n.kategoriId === categoryId)
+          if (existingIdx >= 0) {
+            const updatedNilai = [...s.nilaiKategori]
+            updatedNilai[existingIdx] = { kategoriId, nilai: score }
+            return { ...s, nilaiKategori: updatedNilai }
+          } else {
+            return { ...s, nilaiKategori: [...s.nilaiKategori, { kategoriId, nilai: score }] }
+          }
+        }
+        return s
+      }))
+      
+      // Remove from pending
+      const key = `${studentId}-${categoryId}`
+      const newPendingChanges = new Map(pendingChanges)
+      newPendingChanges.delete(key)
+      setPendingChanges(newPendingChanges)
+    } catch (error) {
+      console.error('Error saving grade:', error)
     }
+  }
+
+  const saveAllPendingChanges = async () => {
+    if (pendingChanges.size === 0) return
     
-    setGrades(updatedGrades)
-    localStorage.setItem('penilaianGrades', JSON.stringify(updatedGrades))
+    setSaving(true)
+    try {
+      const grades = Array.from(pendingChanges.entries()).map(([key, nilai]) => {
+        const [siswaId, kategoriId] = key.split('-')
+        return { siswaId, kategoriId, nilai }
+      })
+      
+      await fetch('/api/penilaian/nilai', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ grades })
+      })
+      
+      setPendingChanges(new Map())
+      fetchData()
+    } catch (error) {
+      console.error('Error saving grades:', error)
+    } finally {
+      setSaving(false)
+    }
   }
 
   const calculateAverage = (studentId: string): number => {
-    const studentGrades = grades.filter(g => g.studentId === studentId && g.score > 0)
+    const studentGrades: number[] = []
+    categories.forEach(cat => {
+      const grade = getGrade(studentId, cat.id)
+      if (grade > 0) studentGrades.push(grade)
+    })
     if (studentGrades.length === 0) return 0
-    const sum = studentGrades.reduce((acc, g) => acc + g.score, 0)
-    return Math.round(sum / studentGrades.length)
+    const sum = studentGrades.reduce((acc, g) => acc + g, 0)
+    return Math.round((sum / studentGrades.length) * 10) / 10
   }
 
   const calculateAccumulation = (studentId: string): number => {
-    const studentGrades = grades.filter(g => g.studentId === studentId && g.score > 0)
-    const sum = studentGrades.reduce((acc, g) => acc + g.score, 0)
-    return Math.round(sum)
+    let sum = 0
+    categories.forEach(cat => {
+      sum += getGrade(studentId, cat.id)
+    })
+    return Math.round(sum * 10) / 10
   }
 
   const filteredStudents = students.filter(student => 
@@ -134,8 +189,14 @@ export default function PenilaianPage() {
   )
 
   // Calculate statistics
-  const totalEntries = grades.filter(g => g.score > 0).length
-  const allScores = grades.filter(g => g.score > 0).map(g => g.score)
+  const allScores: number[] = []
+  students.forEach(s => {
+    categories.forEach(c => {
+      const score = getGrade(s.id, c.id)
+      if (score > 0) allScores.push(score)
+    })
+  })
+  const totalEntries = allScores.length
   const avgScore = allScores.length > 0 
     ? Math.round(allScores.reduce((sum, s) => sum + s, 0) / allScores.length)
     : 0
@@ -152,13 +213,25 @@ export default function PenilaianPage() {
               <h1 className="text-3xl font-bold text-gray-800 mb-2">Nilai Post Test</h1>
               <p className="text-gray-600">Kelola penilaian kemampuan murid Anda</p>
             </div>
-            <button 
-              onClick={() => setShowAddCategoryModal(true)}
-              className="px-6 py-3 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-2xl font-medium hover:shadow-xl transition flex items-center gap-2"
-            >
-              <Plus className="w-5 h-5" />
-              Tambah Kategori Kemampuan
-            </button>
+            <div className="flex gap-3">
+              {pendingChanges.size > 0 && (
+                <button 
+                  onClick={saveAllPendingChanges}
+                  disabled={saving}
+                  className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-2xl font-medium hover:shadow-xl transition flex items-center gap-2"
+                >
+                  {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                  Simpan Perubahan ({pendingChanges.size})
+                </button>
+              )}
+              <button 
+                onClick={() => setShowAddCategoryModal(true)}
+                className="px-6 py-3 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-2xl font-medium hover:shadow-xl transition flex items-center gap-2"
+              >
+                <Plus className="w-5 h-5" />
+                Tambah Kategori Kemampuan
+              </button>
+            </div>
           </div>
 
           {/* Stats Cards */}
@@ -241,7 +314,7 @@ export default function PenilaianPage() {
           {loading ? (
             <div className="px-6 py-12 text-center">
               <div className="flex flex-col items-center gap-2">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+                <Loader2 className="w-8 h-8 text-green-500 animate-spin" />
                 <p className="text-gray-500">Memuat data penilaian...</p>
               </div>
             </div>
@@ -262,31 +335,29 @@ export default function PenilaianPage() {
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>
-                  <tr className="bg-gradient-to-r from-green-500 to-blue-500 text-white">
-                    <th className="px-4 py-3 text-center text-sm font-semibold border border-white/20 sticky left-0 bg-gradient-to-r from-green-500 to-blue-500 z-10">
+                  <tr className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+                    <th className="px-4 py-4 text-center text-sm font-bold border border-blue-500 sticky left-0 bg-blue-600 z-10 w-12">
                       No
                     </th>
-                    <th className="px-4 py-3 text-center text-sm font-semibold border border-white/20 sticky left-12 bg-gradient-to-r from-green-500 to-blue-500 z-10 min-w-[180px]">
+                    <th className="px-4 py-4 text-center text-sm font-bold border border-blue-500 sticky left-12 bg-blue-600 z-10 min-w-[150px]">
                       Nama
                     </th>
                     {categories.map((category) => (
-                      <th key={category.id} className="px-4 py-3 text-center text-sm font-semibold border border-white/20 min-w-[140px]">
+                      <th key={category.id} className="px-4 py-4 text-center text-sm font-bold border border-blue-500 min-w-[120px]">
                         <div className="flex flex-col items-center gap-1">
                           <span>{category.name}</span>
                           <button
                             onClick={() => handleDeleteCategory(category.id)}
                             className="text-xs text-white/70 hover:text-white transition"
+                            title="Hapus kategori"
                           >
                             <Trash2 className="w-3 h-3" />
                           </button>
                         </div>
                       </th>
                     ))}
-                    <th className="px-4 py-3 text-center text-sm font-semibold border border-white/20 min-w-[140px]">
+                    <th className="px-4 py-4 text-center text-sm font-bold border border-blue-500 min-w-[120px] bg-blue-800">
                       Akumulasi Nilai
-                    </th>
-                    <th className="px-4 py-3 text-center text-sm font-semibold border border-white/20 min-w-[120px]">
-                      Kemampuan Rata-rata
                     </th>
                   </tr>
                 </thead>
@@ -299,11 +370,11 @@ export default function PenilaianPage() {
                     </tr>
                   ) : (
                     filteredStudents.map((student, index) => (
-                      <tr key={student.id} className="hover:bg-white/50 transition">
-                        <td className="px-4 py-3 text-center border border-gray-200 sticky left-0 bg-white/70 backdrop-blur-sm font-medium">
+                      <tr key={student.id} className="hover:bg-blue-50/50 transition">
+                        <td className="px-4 py-3 text-center border border-gray-200 sticky left-0 bg-white font-medium">
                           {index + 1}
                         </td>
-                        <td className="px-4 py-3 border border-gray-200 sticky left-12 bg-white/70 backdrop-blur-sm z-10">
+                        <td className="px-4 py-3 border border-gray-200 sticky left-12 bg-white z-10">
                           <div>
                             <p className="font-semibold text-gray-800">{student.nama}</p>
                             <p className="text-xs text-gray-500">NIS: {student.nis}</p>
@@ -312,12 +383,13 @@ export default function PenilaianPage() {
                         {categories.map((category) => {
                           const currentGrade = getGrade(student.id, category.id)
                           const isEditing = editingCell?.studentId === student.id && editingCell?.categoryId === category.id
+                          const hasPendingChange = pendingChanges.has(`${student.id}-${category.id}`)
                           
                           return (
                             <td 
                               key={category.id} 
-                              className="px-2 py-3 text-center border border-gray-200"
-                              onClick={() => setEditingCell({studentId: student.id, categoryId: category.id})}
+                              className={`px-2 py-2 text-center border border-gray-200 ${hasPendingChange ? 'bg-yellow-50' : ''}`}
+                              onClick={() => !isEditing && setEditingCell({studentId: student.id, categoryId: category.id})}
                             >
                               {isEditing ? (
                                 <input
@@ -326,20 +398,27 @@ export default function PenilaianPage() {
                                   max="100"
                                   step="0.1"
                                   value={currentGrade || ''}
-                                  onChange={(e) => handleGradeChange(student.id, category.id, parseFloat(e.target.value))}
-                                  onBlur={() => setEditingCell(null)}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter') setEditingCell(null)
+                                  onChange={(e) => handleGradeChange(student.id, category.id, parseFloat(e.target.value) || 0)}
+                                  onBlur={() => {
+                                    setEditingCell(null)
+                                    if (pendingChanges.has(`${student.id}-${category.id}`)) {
+                                      saveGrade(student.id, category.id, currentGrade)
+                                    }
                                   }}
-                                  className="w-full px-2 py-1 text-center border border-green-300 rounded focus:ring-2 focus:ring-green-400 focus:outline-none"
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      setEditingCell(null)
+                                      if (pendingChanges.has(`${student.id}-${category.id}`)) {
+                                        saveGrade(student.id, category.id, currentGrade)
+                                      }
+                                    }
+                                  }}
+                                  className="w-full px-2 py-1 text-center border-2 border-blue-400 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none"
                                   autoFocus
                                 />
                               ) : (
-                                <div className={`px-3 py-1 rounded-lg font-bold cursor-pointer ${
-                                  currentGrade === 0 ? 'bg-gray-100 text-gray-400' :
-                                  currentGrade >= 80 ? 'bg-green-100 text-green-700' :
-                                  currentGrade >= 60 ? 'bg-yellow-100 text-yellow-700' :
-                                  'bg-red-100 text-red-700'
+                                <div className={`px-2 py-1 cursor-pointer font-medium ${
+                                  currentGrade === 0 ? 'text-gray-400' : 'text-gray-800'
                                 }`}>
                                   {currentGrade > 0 ? currentGrade : '-'}
                                 </div>
@@ -347,22 +426,9 @@ export default function PenilaianPage() {
                             </td>
                           )
                         })}
-                        <td className="px-4 py-3 text-center border border-gray-200">
-                          <div className={`inline-block px-4 py-2 rounded-lg font-bold ${
-                            calculateAccumulation(student.id) === 0 ? 'bg-gray-100 text-gray-400' :
-                            'bg-blue-100 text-blue-700'
-                          }`}>
+                        <td className="px-4 py-3 text-center border border-gray-200 bg-blue-50">
+                          <div className="font-bold text-blue-700">
                             {calculateAccumulation(student.id) > 0 ? calculateAccumulation(student.id) : '-'}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-center border border-gray-200">
-                          <div className={`inline-block px-4 py-2 rounded-lg font-bold ${
-                            calculateAverage(student.id) === 0 ? 'bg-gray-100 text-gray-400' :
-                            calculateAverage(student.id) >= 80 ? 'bg-green-100 text-green-700' :
-                            calculateAverage(student.id) >= 60 ? 'bg-yellow-100 text-yellow-700' :
-                            'bg-red-100 text-red-700'
-                          }`}>
-                            {calculateAverage(student.id) > 0 ? calculateAverage(student.id) : '-'}
                           </div>
                         </td>
                       </tr>

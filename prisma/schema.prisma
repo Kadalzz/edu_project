@@ -42,6 +42,7 @@ model Guru {
   materi          Materi[]
   nilai           Nilai[]
   progressReports ProgressReport[]
+  kategoriPenilaian KategoriPenilaian[]
 
   @@map("guru")
 }
@@ -66,6 +67,7 @@ model Siswa {
   jadwalTemu      JadwalTemu[]
   laporanBelajar  LaporanBelajarRumah[]
   nilai           Nilai[]
+  nilaiKategori   NilaiKategori[]
   progressReports ProgressReport[]
   kelas           Kelas                 @relation(fields: [kelasId], references: [id])
   parent          User                  @relation("ParentToSiswa", fields: [parentId], references: [id])
@@ -335,6 +337,35 @@ model ActivityLog {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("activity_logs")
+}
+
+model KategoriPenilaian {
+  id          String          @id @default(cuid())
+  guruId      String
+  nama        String
+  deskripsi   String?
+  urutan      Int             @default(0)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  guru        Guru            @relation(fields: [guruId], references: [id], onDelete: Cascade)
+  nilaiKategori NilaiKategori[]
+
+  @@map("kategori_penilaian")
+}
+
+model NilaiKategori {
+  id          String            @id @default(cuid())
+  siswaId     String
+  kategoriId  String
+  nilai       Float
+  catatan     String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  siswa       Siswa             @relation(fields: [siswaId], references: [id], onDelete: Cascade)
+  kategori    KategoriPenilaian @relation(fields: [kategoriId], references: [id], onDelete: Cascade)
+
+  @@unique([siswaId, kategoriId])
+  @@map("nilai_kategori")
 }
 
 enum UserRole {
