@@ -98,16 +98,41 @@ export async function PATCH(
   }
 }
 
-// DELETE - Delete student
+// DELETE - Delete student with cascade
 export async function DELETE(
   request: Request,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
     const params = await context.params
-    await prisma.siswa.delete({
-      where: { id: params.id }
-    })
+    
+    // Delete all related records first to avoid foreign key constraints
+    await prisma.$transaction([
+      // Delete hasil kuis
+      prisma.hasilKuis.deleteMany({
+        where: { siswaId: params.id }
+      }),
+      // Delete nilai
+      prisma.nilai.deleteMany({
+        where: { siswaId: params.id }
+      }),
+      // Delete absensi
+      prisma.absensi.deleteMany({
+        where: { siswaId: params.id }
+      }),
+      // Delete progress reports
+      prisma.progressReport.deleteMany({
+        where: { siswaId: params.id }
+      }),
+      // Delete badges
+      prisma.badge.deleteMany({
+        where: { siswaId: params.id }
+      }),
+      // Finally delete the student
+      prisma.siswa.delete({
+        where: { id: params.id }
+      })
+    ])
 
     return NextResponse.json({ success: true, message: "Student deleted successfully" })
   } catch (error) {
