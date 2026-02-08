@@ -36,6 +36,7 @@ export default function TugasPage() {
     mataPelajaran: '',
     mode: 'LIVE' as 'LIVE' | 'HOMEWORK',
     deskripsi: '',
+    durasi: 30,
     deadline: '',
     tanggalTampil: '',
     file: null as File | null,
@@ -71,6 +72,15 @@ export default function TugasPage() {
     
     if (!tugasForm.judul) newErrors.judul = 'Judul wajib diisi'
     if (!tugasForm.mataPelajaran) newErrors.mataPelajaran = 'Mata pelajaran wajib diisi'
+    
+    // Validasi mode-specific requirements
+    if (tugasForm.mode === 'LIVE' && (!tugasForm.durasi || tugasForm.durasi < 5)) {
+      newErrors.durasi = 'Durasi minimal 5 menit untuk mode LIVE'
+    }
+    
+    if (tugasForm.mode === 'HOMEWORK' && !tugasForm.deadline) {
+      newErrors.deadline = 'Deadline wajib diisi untuk Pekerjaan Rumah'
+    }
     
     // Validasi tanggal
     if (tugasForm.tanggalTampil && tugasForm.deadline) {
@@ -115,6 +125,7 @@ export default function TugasPage() {
           mataPelajaran: tugasForm.mataPelajaran,
           mode: tugasForm.mode,
           deskripsi: tugasForm.deskripsi || null,
+          durasi: tugasForm.mode === 'LIVE' ? tugasForm.durasi : null,
           deadline: tugasForm.deadline || null,
           tanggalTampil: tugasForm.tanggalTampil || null,
           status: isDraft ? 'DRAFT' : 'ACTIVE',
@@ -133,6 +144,7 @@ export default function TugasPage() {
           mataPelajaran: '',
           mode: 'LIVE',
           deskripsi: '',
+          durasi: 30,
           deadline: '',
           tanggalTampil: '',
           file: null,
@@ -488,6 +500,27 @@ export default function TugasPage() {
                       </button>
                     </div>
                   </div>
+
+                  {/* Durasi field for LIVE mode */}
+                  {tugasForm.mode === 'LIVE' && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Durasi Pengerjaan <span className="text-red-500">*</span>
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          value={tugasForm.durasi}
+                          onChange={(e) => setTugasForm({...tugasForm, durasi: parseInt(e.target.value) || 30})}
+                          min={5}
+                          max={180}
+                          className="w-24 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-300 focus:outline-none"
+                        />
+                        <span className="text-gray-600">menit</span>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">Waktu yang diberikan untuk mengerjakan (5-180 menit)</p>
+                    </div>
+                  )}
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
