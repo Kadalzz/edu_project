@@ -106,51 +106,91 @@ export async function DELETE(
   try {
     const params = await context.params
     
+    // Check if siswa exists first
+    const siswa = await prisma.siswa.findUnique({
+      where: { id: params.id }
+    })
+
+    if (!siswa) {
+      return NextResponse.json(
+        { success: false, error: "Siswa tidak ditemukan" },
+        { status: 404 }
+      )
+    }
+
     // Delete all related records first to avoid foreign key constraints
-    await prisma.$transaction([
-      // Delete hasil tugas (and its jawaban via cascade)
-      prisma.hasilTugas.deleteMany({
+    // Using sequential transaction for better error handling
+    await prisma.$transaction(async (tx) => {
+      // Delete jawaban from hasilTugas first
+      await tx.jawaban.deleteMany({
+        where: { 
+          hasilTugas: { siswaId: params.id } 
+        }
+      })
+      
+      // Delete hasil tugas
+      await tx.hasilTugas.deleteMany({
         where: { siswaId: params.id }
-      }),
+      })
+      
       // Delete nilai
-      prisma.nilai.deleteMany({
+      await tx.nilai.deleteMany({
         where: { siswaId: params.id }
-      }),
+      })
+      
       // Delete absensi
-      prisma.absensi.deleteMany({
+      await tx.absensi.deleteMany({
         where: { siswaId: params.id }
-      }),
+      })
+      
       // Delete progress reports
-      prisma.progressReport.deleteMany({
+      await tx.progressReport.deleteMany({
         where: { siswaId: params.id }
-      }),
+      })
+      
       // Delete badges
-      prisma.badge.deleteMany({
+      await tx.badge.deleteMany({
         where: { siswaId: params.id }
-      }),
+      })
+      
       // Delete nilai kategori (custom grading)
-      prisma.nilaiKategori.deleteMany({
+      await tx.nilaiKategori.deleteMany({
         where: { siswaId: params.id }
-      }),
+      })
+      
       // Delete jadwal temu (appointment schedules)
-      prisma.jadwalTemu.deleteMany({
+      await tx.jadwalTemu.deleteMany({
         where: { siswaId: params.id }
-      }),
-      // Delete laporan belajar rumah (and its dokumentasi via cascade)
-      prisma.laporanBelajarRumah.deleteMany({
+      })
+      
+      // Delete dokumentasi from laporan belajar rumah
+      const laporanIds = await tx.laporanBelajarRumah.findMany({
+        where: { siswaId: params.id },
+        select: { id: true }
+      })
+      
+      if (laporanIds.length > 0) {
+        await tx.dokumentasi.deleteMany({
+          where: { laporanId: { in: laporanIds.map(l => l.id) } }
+        })
+      }
+      
+      // Delete laporan belajar rumah
+      await tx.laporanBelajarRumah.deleteMany({
         where: { siswaId: params.id }
-      }),
+      })
+      
       // Finally delete the student
-      prisma.siswa.delete({
+      await tx.siswa.delete({
         where: { id: params.id }
       })
-    ])
+    })
 
-    return NextResponse.json({ success: true, message: "Student deleted successfully" })
+    return NextResponse.json({ success: true, message: "Siswa berhasil dihapus" })
   } catch (error: any) {
     console.error("Error deleting siswa:", error)
     return NextResponse.json(
-      { success: false, error: error.message || "Failed to delete student" },
+      { success: false, error: error.message || "Gagal menghapus siswa" },
       { status: 500 }
     )
   }
