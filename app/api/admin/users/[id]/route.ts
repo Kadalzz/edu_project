@@ -40,10 +40,119 @@ export async function DELETE(
       )
     }
 
-    // Delete user (cascade will delete related records)
-    await prisma.user.delete({
-      where: { id },
-    })
+    // Handle deletion based on user role
+    if (user.role === 'GURU') {
+      // Get guru record
+      const guru = await prisma.guru.findUnique({
+        where: { userId: id },
+        include: {
+          kelas: true,
+          nilai: true,
+          kuis: true,
+          progressReports: true,
+          jadwalTemu: true,
+          materi: true,
+          badges: true,
+        }
+      })
+
+      if (guru) {
+        // Check if guru has any students in their classes
+        const siswaCount = await prisma.siswa.count({
+          where: { kelasId: { in: guru.kelas.map(k => k.id) } }
+        })
+
+        if (siswaCount > 0) {
+          return NextResponse.json(
+            { 
+              success: false, 
+              error: `Tidak dapat menghapus guru yang masih memiliki ${siswaCount} siswa di kelasnya. Pindahkan siswa terlebih dahulu.` 
+            },
+            { status: 400 }
+          )
+        }
+
+        // Delete all related records in correct order
+        await prisma.$transaction(async (tx) => {
+          // Delete badges
+          await tx.badge.deleteMany({ where: { guruId: guru.id } })
+          
+          // Delete materi
+          await tx.materi.deleteMany({ where: { guruId: guru.id } })
+          
+          // Delete jadwal temu
+          await tx.jadwalTemu.deleteMany({ where: { guruId: guru.id } })
+          
+          // Delete progress reports
+          await tx.progressReport.deleteMany({ where: { guruId: guru.id } })
+          
+          // Delete kuis and related data
+          const kuisList = await tx.kuis.findMany({ 
+            where: { guruId: guru.id },
+            select: { id: true }
+          })
+          for (const kuis of kuisList) {
+            await tx.jawaban.deleteMany({ 
+              where: { 
+                hasilKuis: { kuisId: kuis.id } 
+              } 
+            })
+            await tx.hasilKuis.deleteMany({ where: { kuisId: kuis.id } })
+            await tx.pertanyaan.deleteMany({ where: { kuisId: kuis.id } })
+          }
+          await tx.kuis.deleteMany({ where: { guruId: guru.id } })
+          
+          // Delete nilai
+          await tx.nilai.deleteMany({ where: { guruId: guru.id } })
+          
+          // Delete kelas (no students at this point)
+          await tx.kelas.deleteMany({ where: { guruId: guru.id } })
+          
+          // Delete guru record
+          await tx.guru.delete({ where: { id: guru.id } })
+          
+          // Delete user (this will cascade to chats, notifications, activity logs)
+          await tx.user.delete({ where: { id } })
+        })
+      } else {
+        // No guru record, just delete user
+        await prisma.user.delete({ where: { id } })
+      }
+    } else if (user.role === 'PARENT') {
+      // Check if parent has children
+      const siswaCount = await prisma.siswa.count({
+        where: { parentId: id }
+      })
+
+      if (siswaCount > 0) {
+        return NextResponse.json(
+          { 
+            success: false, 
+            error: `Tidak dapat menghapus orang tua yang masih memiliki ${siswaCount} anak terdaftar. Hapus atau pindahkan anak terlebih dahulu.` 
+          },
+          { status: 400 }
+        )
+      }
+
+      // Delete laporan belajar rumah and related dokumentasi
+      const laporanList = await prisma.laporanBelajarRumah.findMany({
+        where: { parentId: id },
+        select: { id: true }
+      })
+      
+      await prisma.$transaction(async (tx) => {
+        for (const laporan of laporanList) {
+          await tx.dokumentasi.deleteMany({ where: { laporanId: laporan.id } })
+        }
+        await tx.laporanBelajarRumah.deleteMany({ where: { parentId: id } })
+        
+        // Delete user (this will cascade to chats, notifications, activity logs)
+        await tx.user.delete({ where: { id } })
+      })
+    } else {
+      // For other roles, just delete user
+      await prisma.user.delete({ where: { id } })
+    }
 
     return NextResponse.json({ 
       success: true, 
@@ -62,7 +171,7 @@ export async function DELETE(
     
     if (error.code === 'P2003') {
       return NextResponse.json(
-        { success: false, error: "Tidak dapat menghapus user karena masih memiliki data terkait" },
+        { success: false, error: "Tidak dapat menghapus user karena masih memiliki data terkait. Silakan hubungi administrator." },
         { status: 400 }
       )
     }

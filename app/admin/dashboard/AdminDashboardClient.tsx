@@ -1,8 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { Users, BookOpen, GraduationCap, TrendingUp, Calendar, Settings, Bell, LogOut, Search, UserCheck, UserX, Clock } from "lucide-react"
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
+import { Users, GraduationCap, Settings, Bell, LogOut, Search, BarChart3 } from "lucide-react"
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 
@@ -60,25 +59,13 @@ export default function AdminDashboardClient({ userName }: Props) {
             </div>
             <span className="font-medium">Kelola User</span>
           </Link>
-          <Link href="#" className="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
+          <Link href="/admin/analytics" className="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
             <div className="w-8 h-8 mr-3 bg-gray-100 rounded-lg flex items-center justify-center">
-              <Calendar className="w-4 h-4 text-gray-600" />
-            </div>
-            <span className="font-medium">Attendance</span>
-          </Link>
-          <Link href="#" className="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
-            <div className="w-8 h-8 mr-3 bg-gray-100 rounded-lg flex items-center justify-center">
-              <GraduationCap className="w-4 h-4 text-gray-600" />
+              <BarChart3 className="w-4 h-4 text-gray-600" />
             </div>
             <span className="font-medium">Analytics</span>
           </Link>
-          <Link href="#" className="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
-            <div className="w-8 h-8 mr-3 bg-gray-100 rounded-lg flex items-center justify-center">
-              <TrendingUp className="w-4 h-4 text-gray-600" />
-            </div>
-            <span className="font-medium">Report Attendance</span>
-          </Link>
-          <Link href="#" className="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
+          <Link href="/admin/settings" className="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
             <div className="w-8 h-8 mr-3 bg-gray-100 rounded-lg flex items-center justify-center">
               <Settings className="w-4 h-4 text-gray-600" />
             </div>
@@ -203,28 +190,7 @@ export default function AdminDashboardClient({ userName }: Props) {
                 <p className="text-xs text-pink-600 font-medium mb-1">Late</p>
                 <p className="text-2xl font-bold text-pink-700">10</p>
               </div>
-              <div className="bg-gradient-to-br from-purple-100 to-purple-200 rounded-2xl p-4 text-center shadow-lg">
-                <UserX className="w-6 h-6 text-purple-600 mx-auto mb-2" />
-                <p className="text-xs text-purple-600 font-medium mb-1">Absent</p>
-                <p className="text-2xl font-bold text-purple-700">4</p>
-              </div>
-            </div>
-
-            {/* Birthday Notification - Hidden until data available */}
-
-            {/* Students on Holiday */}
-            <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-xl p-6">
-              <h4 className="font-bold text-gray-800 mb-4">Siswa Tidak Hadir</h4>
-              <div className="py-8 text-center">
-                <p className="text-sm text-gray-500">Belum ada data</p>
-              </div>
-            </div>
-
-            {/* Mini Calendar */}
-            <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-xl p-6">
-              <div className="text-center">
-                <h4 className="font-bold text-gray-800 mb-4">Februari</h4>
-                <div className="grid grid-cols-7 gap-2 text-xs">
+              <d<div className="grid grid-cols-7 gap-2 text-xs">
                   {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (
                     <div key={day} className="font-semibold text-gray-500">{day}</div>
                   ))}
