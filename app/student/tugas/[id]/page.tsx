@@ -554,6 +554,21 @@ function KerjakanTugasContent() {
                   </p>
                 </div>
 
+                {(!tugas?.pertanyaan || tugas.pertanyaan.length === 0) && (
+                  <div className="p-6 bg-yellow-50 rounded-2xl border border-yellow-200">
+                    <div className="flex items-start gap-3">
+                      <AlertCircle className="w-6 h-6 text-yellow-600 flex-shrink-0" />
+                      <div>
+                        <h3 className="font-semibold text-yellow-800">Belum Ada Soal</h3>
+                        <p className="text-sm text-yellow-700 mt-1">
+                          Guru belum menambahkan pertanyaan untuk tugas ini. 
+                          Silakan hubungi guru atau kumpulkan tugas langsung.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {tugas?.pertanyaan.map((pertanyaan, index) => (
                   <div key={pertanyaan.id} className="p-6 bg-white rounded-2xl shadow-lg">
                     <div className="flex items-start gap-3 mb-4">
