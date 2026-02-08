@@ -98,40 +98,53 @@ export async function GET(request: Request) {
   }
 }
 
-// POST - Create new quiz
+// POST - Create new quiz/tugas
 export async function POST(request: Request) {
   try {
     const body = await request.json()
     const {
-      guruId,
       kelasId,
       judul,
       deskripsi,
       mode,
       durasi,
       deadline,
+      tanggalTampil,
       mataPelajaran,
-      pertanyaan
+      pertanyaan,
+      status
     } = body
 
-    // Validate required fields
-    if (!guruId || !judul || !mode) {
+    // Get guruId from session (you'll need to implement proper auth)
+    // For now, get first guru as fallback
+    const guru = await prisma.guru.findFirst()
+    
+    if (!guru) {
       return NextResponse.json(
-        { success: false, error: "Missing required fields" },
+        { success: false, error: "Guru not found. Please create a teacher account first." },
+        { status: 400 }
+      )
+    }
+
+    // Validate required fields
+    if (!judul || !mode) {
+      return NextResponse.json(
+        { success: false, error: "Judul dan mode wajib diisi" },
         { status: 400 }
       )
     }
 
     const kuis = await prisma.kuis.create({
       data: {
-        guruId,
+        guruId: guru.id,
         kelasId,
         judul,
         deskripsi,
         mode,
-        status: "DRAFT",
+        status: status || "ACTIVE",
         durasi,
         deadline: deadline ? new Date(deadline) : null,
+        tanggalTampil: tanggalTampil ? new Date(tanggalTampil) : null,
         mataPelajaran,
         pertanyaan: pertanyaan ? {
           create: pertanyaan.map((p: any, index: number) => ({
@@ -163,7 +176,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Error creating kuis:", error)
     return NextResponse.json(
-      { success: false, error: "Failed to create quiz" },
+      { success: false, error: "Failed to create tugas" },
       { status: 500 }
     )
   }
