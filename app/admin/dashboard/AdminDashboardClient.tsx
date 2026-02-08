@@ -178,19 +178,19 @@ export default function AdminDashboardClient({ userName }: Props) {
 
           {/* Right Column */}
           <div className="space-y-6">
-            {/* Attendance Stats */}
-            <div className="grid grid-cols-3 gap-3">
-              <div className="bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl p-4 text-center shadow-lg">
-                <UserCheck className="w-6 h-6 text-blue-600 mx-auto mb-2" />
-                <p className="text-xs text-blue-600 font-medium mb-1">Attendance</p>
-                <p className="text-2xl font-bold text-blue-700">142</p>
+            {/* Students on Holiday */}
+            <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-xl p-6">
+              <h4 className="font-bold text-gray-800 mb-4">Siswa Tidak Hadir</h4>
+              <div className="py-8 text-center">
+                <p className="text-sm text-gray-500">Belum ada data</p>
               </div>
-              <div className="bg-gradient-to-br from-pink-100 to-pink-200 rounded-2xl p-4 text-center shadow-lg">
-                <Clock className="w-6 h-6 text-pink-600 mx-auto mb-2" />
-                <p className="text-xs text-pink-600 font-medium mb-1">Late</p>
-                <p className="text-2xl font-bold text-pink-700">10</p>
-              </div>
-              <d<div className="grid grid-cols-7 gap-2 text-xs">
+            </div>
+
+            {/* Mini Calendar */}
+            <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-xl p-6">
+              <div className="text-center">
+                <h4 className="font-bold text-gray-800 mb-4">Februari</h4>
+                <div className="grid grid-cols-7 gap-2 text-xs">
                   {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (
                     <div key={day} className="font-semibold text-gray-500">{day}</div>
                   ))}
