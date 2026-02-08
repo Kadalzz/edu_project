@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 
-// GET - Get single quiz by ID
+// GET - Get single tugas by ID
 export async function GET(
   request: Request,
   context: { params: Promise<{ id: string }> }
@@ -50,7 +50,7 @@ export async function GET(
 
     if (!tugas) {
       return NextResponse.json(
-        { success: false, error: "Quiz not found" },
+        { success: false, error: "Tugas tidak ditemukan" },
         { status: 404 }
       )
     }
@@ -76,13 +76,13 @@ export async function GET(
   } catch (error) {
     console.error("Error fetching tugas:", error)
     return NextResponse.json(
-      { success: false, error: "Failed to fetch quiz" },
+      { success: false, error: "Gagal mengambil data tugas" },
       { status: 500 }
     )
   }
 }
 
-// PATCH - Update quiz
+// PATCH - Update tugas
 export async function PATCH(
   request: Request,
   context: { params: Promise<{ id: string }> }
@@ -102,14 +102,14 @@ export async function PATCH(
       pertanyaan
     } = body
 
-    // Check if quiz exists
+    // Check if tugas exists
     const existingTugas = await prisma.tugas.findUnique({
       where: { id }
     })
 
     if (!existingTugas) {
       return NextResponse.json(
-        { success: false, error: "Quiz not found" },
+        { success: false, error: "Tugas tidak ditemukan" },
         { status: 404 }
       )
     }
@@ -167,13 +167,13 @@ export async function PATCH(
   } catch (error) {
     console.error("Error updating tugas:", error)
     return NextResponse.json(
-      { success: false, error: "Failed to update quiz" },
+      { success: false, error: "Gagal mengupdate tugas" },
       { status: 500 }
     )
   }
 }
 
-// DELETE - Delete quiz
+// DELETE - Delete tugas
 export async function DELETE(
   request: Request,
   context: { params: Promise<{ id: string }> }
@@ -181,50 +181,54 @@ export async function DELETE(
   try {
     const { id } = await context.params
 
-    // Check if quiz exists
+    // Check if tugas exists
     const existingTugas = await prisma.tugas.findUnique({
-      where: { id },
-      include: {
-        hasilTugas: true
-      }
+      where: { id }
     })
 
     if (!existingTugas) {
       return NextResponse.json(
-        { success: false, error: "Quiz not found" },
+        { success: false, error: "Tugas tidak ditemukan" },
         { status: 404 }
       )
     }
 
-    // Check if quiz has results
-    if (existingTugas.hasilTugas.length > 0) {
-      return NextResponse.json(
-        { 
-          success: false, 
-          error: "Cannot delete quiz with submitted results. Archive it instead." 
-        },
-        { status: 400 }
-      )
-    }
-
-    // Delete pertanyaan first (cascade)
-    await prisma.pertanyaan.deleteMany({
-      where: { tugasId: id }
-    })
-
-    // Delete quiz
-    await prisma.tugas.delete({
-      where: { id }
-    })
+    // Delete all related records in a transaction
+    await prisma.$transaction([
+      // Delete jawaban from hasilTugas
+      prisma.jawaban.deleteMany({
+        where: {
+          hasilTugas: { tugasId: id }
+        }
+      }),
+      // Delete hasilTugas
+      prisma.hasilTugas.deleteMany({
+        where: { tugasId: id }
+      }),
+      // Delete jawaban from pertanyaan
+      prisma.jawaban.deleteMany({
+        where: {
+          pertanyaan: { tugasId: id }
+        }
+      }),
+      // Delete pertanyaan
+      prisma.pertanyaan.deleteMany({
+        where: { tugasId: id }
+      }),
+      // Delete tugas
+      prisma.tugas.delete({
+        where: { id }
+      })
+    ])
 
     return NextResponse.json({ 
       success: true, 
-      message: "Quiz deleted successfully" 
+      message: "Tugas berhasil dihapus" 
     })
   } catch (error) {
     console.error("Error deleting tugas:", error)
     return NextResponse.json(
-      { success: false, error: "Failed to delete quiz" },
+      { success: false, error: "Gagal menghapus tugas" },
       { status: 500 }
     )
   }

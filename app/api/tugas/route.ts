@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 
-// GET - Get all quizzes
+// GET - Get all tugas
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
@@ -73,16 +73,16 @@ export async function GET(request: Request) {
       orderBy: { createdAt: "desc" }
     })
 
-    // Calculate statistics for each quiz
-    const tugasWithStats = tugas.map((quiz: any) => {
-      const totalParticipants = quiz.hasilTugas.length
+    // Calculate statistics for each tugas
+    const tugasWithStats = tugas.map((t: any) => {
+      const totalParticipants = t.hasilTugas.length
       const avgScore = totalParticipants > 0
-        ? quiz.hasilTugas.reduce((sum: number, h: any) => sum + (h.skor / h.skorMaksimal * 100), 0) / totalParticipants
+        ? t.hasilTugas.reduce((sum: number, h: any) => sum + (h.skor / h.skorMaksimal * 100), 0) / totalParticipants
         : 0
 
       return {
-        ...quiz,
-        totalQuestions: quiz._count.pertanyaan,
+        ...t,
+        totalQuestions: t._count.pertanyaan,
         totalParticipants,
         avgScore: Math.round(avgScore)
       }
@@ -92,13 +92,13 @@ export async function GET(request: Request) {
   } catch (error) {
     console.error("Error fetching tugas:", error)
     return NextResponse.json(
-      { success: false, error: "Failed to fetch quizzes" },
+      { success: false, error: "Gagal mengambil data tugas" },
       { status: 500 }
     )
   }
 }
 
-// POST - Create new quiz/tugas
+// POST - Create new tugas
 export async function POST(request: Request) {
   try {
     const body = await request.json()
