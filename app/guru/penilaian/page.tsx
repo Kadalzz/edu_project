@@ -120,10 +120,10 @@ export default function PenilaianPage() {
           const existingIdx = s.nilaiKategori.findIndex(n => n.kategoriId === categoryId)
           if (existingIdx >= 0) {
             const updatedNilai = [...s.nilaiKategori]
-            updatedNilai[existingIdx] = { kategoriId, nilai: score }
+            updatedNilai[existingIdx] = { kategoriId: categoryId, nilai: score }
             return { ...s, nilaiKategori: updatedNilai }
           } else {
-            return { ...s, nilaiKategori: [...s.nilaiKategori, { kategoriId, nilai: score }] }
+            return { ...s, nilaiKategori: [...s.nilaiKategori, { kategoriId: categoryId, nilai: score }] }
           }
         }
         return s
