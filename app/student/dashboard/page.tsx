@@ -84,9 +84,9 @@ function StudentDashboardContent() {
             <BookOpen className="h-5 w-5" />
             <span className="font-medium">Dashboard</span>
           </Link>
-          <Link href="/student/quiz" className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg">
+          <Link href="/student/tugas" className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg">
             <ClipboardList className="h-5 w-5" />
-            <span className="font-medium">Kuis</span>
+            <span className="font-medium">Tugas</span>
           </Link>
           <Link href="/student/materi" className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg">
             <FileText className="h-5 w-5" />
