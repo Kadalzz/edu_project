@@ -151,32 +151,32 @@ model Nilai {
 // TUGAS (ASSIGNMENT)
 // ============================================
 
-enum TugasMode {
+enum KuisMode {
   LIVE
   HOMEWORK
 }
 
-enum TugasStatus {
+enum KuisStatus {
   DRAFT
   ACTIVE
   CLOSED
 }
 
 model Tugas {
-  id            String      @id @default(cuid())
+  id            String     @id @default(cuid())
   guruId        String
   kelasId       String?
   judul         String
-  deskripsi     String?     @db.Text
-  mode          TugasMode
-  status        TugasStatus @default(DRAFT)
-  pinCode       String?     @unique
+  deskripsi     String?    @db.Text
+  mode          KuisMode
+  status        KuisStatus @default(DRAFT)
+  pinCode       String?    @unique
   durasi        Int? // dalam menit
   deadline      DateTime?
   tanggalTampil DateTime? // Kapan tugas mulai ditampilkan ke siswa
   mataPelajaran String?
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
 
   // Relations
   guru       Guru         @relation(fields: [guruId], references: [id])
