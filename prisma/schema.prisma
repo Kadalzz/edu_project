@@ -173,6 +173,7 @@ model Kuis {
   pinCode     String?     @unique
   durasi      Int?        // dalam menit
   deadline    DateTime?
+  tanggalTampil DateTime?  // Kapan tugas mulai ditampilkan ke siswa
   mataPelajaran String?
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
