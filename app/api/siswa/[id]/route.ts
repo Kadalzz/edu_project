@@ -108,7 +108,7 @@ export async function DELETE(
     
     // Delete all related records first to avoid foreign key constraints
     await prisma.$transaction([
-      // Delete hasil tugas
+      // Delete hasil tugas (and its jawaban via cascade)
       prisma.hasilTugas.deleteMany({
         where: { siswaId: params.id }
       }),
@@ -128,6 +128,18 @@ export async function DELETE(
       prisma.badge.deleteMany({
         where: { siswaId: params.id }
       }),
+      // Delete nilai kategori (custom grading)
+      prisma.nilaiKategori.deleteMany({
+        where: { siswaId: params.id }
+      }),
+      // Delete jadwal temu (appointment schedules)
+      prisma.jadwalTemu.deleteMany({
+        where: { siswaId: params.id }
+      }),
+      // Delete laporan belajar rumah (and its dokumentasi via cascade)
+      prisma.laporanBelajarRumah.deleteMany({
+        where: { siswaId: params.id }
+      }),
       // Finally delete the student
       prisma.siswa.delete({
         where: { id: params.id }
@@ -135,10 +147,10 @@ export async function DELETE(
     ])
 
     return NextResponse.json({ success: true, message: "Student deleted successfully" })
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error deleting siswa:", error)
     return NextResponse.json(
-      { success: false, error: "Failed to delete student" },
+      { success: false, error: error.message || "Failed to delete student" },
       { status: 500 }
     )
   }
