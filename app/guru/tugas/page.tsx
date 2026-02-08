@@ -1,6 +1,6 @@
 "use client"
 
-import { ClipboardList, Plus, Search, Eye, Edit, Trash2, Users, Clock, BookOpen, Home, Building2, CheckCircle, Calendar } from "lucide-react"
+import { ClipboardList, Plus, Search, Eye, Edit, Trash2, Users, Clock, BookOpen, Home, Building2, CheckCircle, Calendar, HelpCircle, X } from "lucide-react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
 
@@ -23,6 +23,14 @@ interface Tugas {
   } | null
 }
 
+interface PertanyaanForm {
+  soal: string
+  tipeJawaban: 'multiple_choice' | 'essay' | 'true_false'
+  pilihan: string[]
+  jawabanBenar: string
+  poin: number
+}
+
 export default function TugasPage() {
   const [tugas, setTugas] = useState<Tugas[]>([])
   const [loading, setLoading] = useState(true)
@@ -42,6 +50,7 @@ export default function TugasPage() {
     file: null as File | null,
     kirimNotifikasi: true
   })
+  const [pertanyaanList, setPertanyaanList] = useState<PertanyaanForm[]>([])
   const [errors, setErrors] = useState<{[key: string]: string}>({})
 
   useEffect(() => {
@@ -130,7 +139,8 @@ export default function TugasPage() {
           tanggalTampil: tugasForm.tanggalTampil || null,
           status: isDraft ? 'DRAFT' : 'ACTIVE',
           fileUrl: fileUrl,
-          kirimNotifikasi: !isDraft && tugasForm.kirimNotifikasi
+          kirimNotifikasi: !isDraft && tugasForm.kirimNotifikasi,
+          pertanyaan: pertanyaanList.length > 0 ? pertanyaanList : undefined
         })
       })
 
@@ -150,6 +160,7 @@ export default function TugasPage() {
           file: null,
           kirimNotifikasi: true
         })
+        setPertanyaanList([])
         setErrors({})
         fetchTugas()
       } else {
@@ -181,6 +192,47 @@ export default function TugasPage() {
       console.error('Error deleting tugas:', error)
       alert('Terjadi kesalahan saat menghapus tugas')
     }
+  }
+
+  // Pertanyaan helper functions
+  const addPertanyaan = () => {
+    setPertanyaanList([...pertanyaanList, {
+      soal: '',
+      tipeJawaban: 'multiple_choice',
+      pilihan: ['', '', '', ''],
+      jawabanBenar: '',
+      poin: 10
+    }])
+  }
+
+  const removePertanyaan = (index: number) => {
+    const updated = pertanyaanList.filter((_, i) => i !== index)
+    setPertanyaanList(updated)
+  }
+
+  const updatePertanyaan = (index: number, field: keyof PertanyaanForm, value: any) => {
+    const updated = [...pertanyaanList]
+    updated[index] = { ...updated[index], [field]: value }
+    
+    // Reset pilihan when changing type
+    if (field === 'tipeJawaban') {
+      if (value === 'multiple_choice') {
+        updated[index].pilihan = ['', '', '', '']
+      } else if (value === 'true_false') {
+        updated[index].pilihan = ['Benar', 'Salah']
+      } else {
+        updated[index].pilihan = []
+      }
+      updated[index].jawabanBenar = ''
+    }
+    
+    setPertanyaanList(updated)
+  }
+
+  const updatePilihan = (pertanyaanIndex: number, pilihanIndex: number, value: string) => {
+    const updated = [...pertanyaanList]
+    updated[pertanyaanIndex].pilihan[pilihanIndex] = value
+    setPertanyaanList(updated)
   }
 
   const filteredTugas = tugas.filter(task => {
@@ -568,6 +620,153 @@ export default function TugasPage() {
                     </div>
                   </div>
 
+                  {/* Pertanyaan Section */}
+                  <div className="border-t pt-4 mt-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <HelpCircle className="w-5 h-5 text-purple-600" />
+                        <h3 className="font-semibold text-gray-800">Pertanyaan/Soal</h3>
+                        <span className="text-sm text-gray-500">({pertanyaanList.length} soal)</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={addPertanyaan}
+                        className="px-3 py-1.5 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium hover:bg-purple-200 transition flex items-center gap-1"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Tambah Soal
+                      </button>
+                    </div>
+
+                    {pertanyaanList.length === 0 ? (
+                      <div className="bg-gray-50 border border-dashed border-gray-300 rounded-xl p-6 text-center">
+                        <HelpCircle className="w-10 h-10 text-gray-400 mx-auto mb-2" />
+                        <p className="text-sm text-gray-500">Belum ada pertanyaan.</p>
+                        <p className="text-xs text-gray-400">Klik "Tambah Soal" untuk menambah pertanyaan</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4 max-h-80 overflow-y-auto">
+                        {pertanyaanList.map((pertanyaan, index) => (
+                          <div key={index} className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                            <div className="flex items-start justify-between mb-3">
+                              <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-lg text-xs font-semibold">
+                                Soal {index + 1}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => removePertanyaan(index)}
+                                className="text-red-500 hover:text-red-700"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
+
+                            <div className="space-y-3">
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">Pertanyaan</label>
+                                <textarea
+                                  value={pertanyaan.soal}
+                                  onChange={(e) => updatePertanyaan(index, 'soal', e.target.value)}
+                                  placeholder="Tulis pertanyaan..."
+                                  rows={2}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-300 focus:outline-none resize-none"
+                                />
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-600 mb-1">Tipe Jawaban</label>
+                                  <select
+                                    value={pertanyaan.tipeJawaban}
+                                    onChange={(e) => updatePertanyaan(index, 'tipeJawaban', e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-300 focus:outline-none"
+                                  >
+                                    <option value="multiple_choice">Pilihan Ganda</option>
+                                    <option value="essay">Essay</option>
+                                    <option value="true_false">Benar/Salah</option>
+                                  </select>
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-600 mb-1">Poin</label>
+                                  <input
+                                    type="number"
+                                    value={pertanyaan.poin}
+                                    onChange={(e) => updatePertanyaan(index, 'poin', parseInt(e.target.value) || 10)}
+                                    min={1}
+                                    max={100}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-300 focus:outline-none"
+                                  />
+                                </div>
+                              </div>
+
+                              {pertanyaan.tipeJawaban === 'multiple_choice' && (
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-600 mb-1">Pilihan Jawaban</label>
+                                  <div className="space-y-2">
+                                    {pertanyaan.pilihan.map((pilihan, pIndex) => (
+                                      <div key={pIndex} className="flex items-center gap-2">
+                                        <input
+                                          type="radio"
+                                          name={`jawaban-${index}`}
+                                          checked={pertanyaan.jawabanBenar === pilihan && pilihan !== ''}
+                                          onChange={() => updatePertanyaan(index, 'jawabanBenar', pilihan)}
+                                          className="w-4 h-4 text-purple-600"
+                                          disabled={!pilihan}
+                                        />
+                                        <input
+                                          type="text"
+                                          value={pilihan}
+                                          onChange={(e) => updatePilihan(index, pIndex, e.target.value)}
+                                          placeholder={`Pilihan ${String.fromCharCode(65 + pIndex)}`}
+                                          className="flex-1 px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-300 focus:outline-none"
+                                        />
+                                      </div>
+                                    ))}
+                                  </div>
+                                  <p className="text-xs text-gray-400 mt-1">Pilih radio untuk menandai jawaban benar</p>
+                                </div>
+                              )}
+
+                              {pertanyaan.tipeJawaban === 'true_false' && (
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-600 mb-1">Jawaban Benar</label>
+                                  <div className="flex gap-4">
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                      <input
+                                        type="radio"
+                                        name={`tf-${index}`}
+                                        value="Benar"
+                                        checked={pertanyaan.jawabanBenar === 'Benar'}
+                                        onChange={() => updatePertanyaan(index, 'jawabanBenar', 'Benar')}
+                                        className="w-4 h-4 text-purple-600"
+                                      />
+                                      <span className="text-sm">Benar</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                      <input
+                                        type="radio"
+                                        name={`tf-${index}`}
+                                        value="Salah"
+                                        checked={pertanyaan.jawabanBenar === 'Salah'}
+                                        onChange={() => updatePertanyaan(index, 'jawabanBenar', 'Salah')}
+                                        className="w-4 h-4 text-purple-600"
+                                      />
+                                      <span className="text-sm">Salah</span>
+                                    </label>
+                                  </div>
+                                </div>
+                              )}
+
+                              {pertanyaan.tipeJawaban === 'essay' && (
+                                <p className="text-xs text-gray-400 italic">Essay akan dinilai manual oleh guru</p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       File Lampiran <span className="text-gray-400 text-xs">(Opsional)</span>
@@ -629,6 +828,7 @@ export default function TugasPage() {
                       onClick={() => {
                         setShowCreateModal(false)
                         setErrors({})
+                        setPertanyaanList([])
                       }}
                       className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition"
                     >
