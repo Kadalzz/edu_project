@@ -37,8 +37,11 @@ export default function TugasPage() {
     mode: 'LIVE' as 'LIVE' | 'HOMEWORK',
     deskripsi: '',
     deadline: '',
-    tanggalTampil: ''
+    tanggalTampil: '',
+    file: null as File | null,
+    kirimNotifikasi: true
   })
+  const [errors, setErrors] = useState<{[key: string]: string}>({})
 
   useEffect(() => {
     fetchTugas()
@@ -63,13 +66,47 @@ export default function TugasPage() {
     }
   }
 
-  const handleCreateTugas = async () => {
-    if (!tugasForm.judul || !tugasForm.mataPelajaran) {
-      alert('Mohon isi judul dan mata pelajaran')
-      return
+  const validateForm = () => {
+    const newErrors: {[key: string]: string} = {}
+    
+    if (!tugasForm.judul) newErrors.judul = 'Judul wajib diisi'
+    if (!tugasForm.mataPelajaran) newErrors.mataPelajaran = 'Mata pelajaran wajib diisi'
+    
+    // Validasi tanggal
+    if (tugasForm.tanggalTampil && tugasForm.deadline) {
+      const tampil = new Date(tugasForm.tanggalTampil)
+      const deadline = new Date(tugasForm.deadline)
+      if (deadline <= tampil) {
+        newErrors.deadline = 'Deadline harus setelah tanggal tampil'
+      }
     }
+    
+    if (tugasForm.deadline) {
+      const deadline = new Date(tugasForm.deadline)
+      const now = new Date()
+      if (deadline < now) {
+        newErrors.deadline = 'Deadline tidak boleh di masa lalu'
+      }
+    }
+    
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  const handleCreateTugas = async (isDraft: boolean = false) => {
+    if (!validateForm()) return
 
     try {
+      // Upload file if exists
+      let fileUrl = null
+      if (tugasForm.file) {
+        const formData = new FormData()
+        formData.append('file', tugasForm.file)
+        // Note: Implement file upload endpoint later
+        // For now, we'll just log it
+        console.log('File to upload:', tugasForm.file.name)
+      }
+
       const response = await fetch('/api/kuis', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -80,14 +117,16 @@ export default function TugasPage() {
           deskripsi: tugasForm.deskripsi || null,
           deadline: tugasForm.deadline || null,
           tanggalTampil: tugasForm.tanggalTampil || null,
-          status: 'ACTIVE'
+          status: isDraft ? 'DRAFT' : 'ACTIVE',
+          fileUrl: fileUrl,
+          kirimNotifikasi: !isDraft && tugasForm.kirimNotifikasi
         })
       })
 
       const result = await response.json()
 
       if (result.success) {
-        alert('Tugas berhasil dibuat!')
+        alert(isDraft ? 'Tugas berhasil disimpan sebagai draft!' : 'Tugas berhasil dipublikasikan!')
         setShowCreateModal(false)
         setTugasForm({
           judul: '',
@@ -95,8 +134,11 @@ export default function TugasPage() {
           mode: 'LIVE',
           deskripsi: '',
           deadline: '',
-          tanggalTampil: ''
+          tanggalTampil: '',
+          file: null,
+          kirimNotifikasi: true
         })
+        setErrors({})
         fetchTugas()
       } else {
         alert(result.error || 'Gagal membuat tugas')
@@ -379,25 +421,31 @@ export default function TugasPage() {
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Judul Tugas</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Judul Tugas <span className="text-red-500">*</span>
+                    </label>
                     <input
                       type="text"
                       value={tugasForm.judul}
                       onChange={(e) => setTugasForm({...tugasForm, judul: e.target.value})}
                       placeholder="Contoh: Tugas Matematika Bab 5"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-300 focus:outline-none"
+                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-300 focus:outline-none ${errors.judul ? 'border-red-500' : 'border-gray-300'}`}
                     />
+                    {errors.judul && <p className="text-red-500 text-xs mt-1">{errors.judul}</p>}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Mata Pelajaran</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Mata Pelajaran <span className="text-red-500">*</span>
+                    </label>
                     <input
                       type="text"
                       value={tugasForm.mataPelajaran}
                       onChange={(e) => setTugasForm({...tugasForm, mataPelajaran: e.target.value})}
                       placeholder="Contoh: Matematika"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-300 focus:outline-none"
+                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-300 focus:outline-none ${errors.mataPelajaran ? 'border-red-500' : 'border-gray-300'}`}
                     />
+                    {errors.mataPelajaran && <p className="text-red-500 text-xs mt-1">{errors.mataPelajaran}</p>}
                   </div>
 
                   <div>
@@ -442,25 +490,30 @@ export default function TugasPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Deskripsi</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Deskripsi <span className="text-gray-400 text-xs">(Opsional)</span>
+                    </label>
                     <textarea
                       value={tugasForm.deskripsi}
                       onChange={(e) => setTugasForm({...tugasForm, deskripsi: e.target.value})}
                       placeholder="Jelaskan detail tugas..."
                       rows={3}
+                      maxLength={500}
                       className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-300 focus:outline-none"
                     />
+                    <p className="text-xs text-gray-400 mt-1">{tugasForm.deskripsi.length}/500 karakter</p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Tanggal Tampil <span className="text-gray-500 text-xs">(Opsional)</span>
+                        Tanggal Tampil <span className="text-gray-400 text-xs">(Opsional)</span>
                       </label>
                       <input
                         type="date"
                         value={tugasForm.tanggalTampil}
                         onChange={(e) => setTugasForm({...tugasForm, tanggalTampil: e.target.value})}
+                        min={new Date().toISOString().split('T')[0]}
                         className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-300 focus:outline-none"
                       />
                       <p className="text-xs text-gray-500 mt-1">Kapan tugas mulai terlihat siswa</p>
@@ -468,27 +521,82 @@ export default function TugasPage() {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Deadline <span className="text-gray-500 text-xs">(Opsional)</span>
+                        Deadline <span className="text-gray-400 text-xs">(Opsional)</span>
                       </label>
                       <input
-                        type="date"
+                        type="datetime-local"
                         value={tugasForm.deadline}
                         onChange={(e) => setTugasForm({...tugasForm, deadline: e.target.value})}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-300 focus:outline-none"
+                        min={tugasForm.tanggalTampil || new Date().toISOString().slice(0, 16)}
+                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-300 focus:outline-none ${errors.deadline ? 'border-red-500' : 'border-gray-300'}`}
                       />
-                      <p className="text-xs text-gray-500 mt-1">Batas waktu pengerjaan</p>
+                      {errors.deadline && <p className="text-red-500 text-xs mt-1">{errors.deadline}</p>}
+                      <p className="text-xs text-gray-500 mt-1">Batas waktu pengerjaan (tanggal & jam)</p>
                     </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      File Lampiran <span className="text-gray-400 text-xs">(Opsional)</span>
+                    </label>
+                    <div className="border-2 border-dashed border-gray-300 rounded-xl p-4 hover:border-green-400 transition">
+                      <input
+                        type="file"
+                        id="file-upload"
+                        onChange={(e) => setTugasForm({...tugasForm, file: e.target.files?.[0] || null})}
+                        className="hidden"
+                        accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png"
+                      />
+                      <label htmlFor="file-upload" className="cursor-pointer flex flex-col items-center">
+                        <BookOpen className="w-8 h-8 text-gray-400 mb-2" />
+                        {tugasForm.file ? (
+                          <div className="text-center">
+                            <p className="text-sm font-medium text-green-600">{tugasForm.file.name}</p>
+                            <p className="text-xs text-gray-500">{(tugasForm.file.size / 1024).toFixed(2)} KB</p>
+                          </div>
+                        ) : (
+                          <div className="text-center">
+                            <p className="text-sm text-gray-600">Klik untuk upload file</p>
+                            <p className="text-xs text-gray-400 mt-1">PDF, DOC, PPT, atau Gambar (Max 10MB)</p>
+                          </div>
+                        )}
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={tugasForm.kirimNotifikasi}
+                        onChange={(e) => setTugasForm({...tugasForm, kirimNotifikasi: e.target.checked})}
+                        className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-300"
+                      />
+                      <div>
+                        <p className="text-sm font-medium text-gray-800">Kirim Notifikasi ke Siswa</p>
+                        <p className="text-xs text-gray-600">Siswa akan menerima notifikasi saat tugas dipublikasikan</p>
+                      </div>
+                    </label>
                   </div>
 
                   <div className="flex gap-3 mt-6">
                     <button
-                      onClick={handleCreateTugas}
+                      onClick={() => handleCreateTugas(false)}
                       className="flex-1 px-6 py-3 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-xl font-medium hover:shadow-xl transition"
                     >
-                      Buat Tugas
+                      Publikasikan
                     </button>
                     <button
-                      onClick={() => setShowCreateModal(false)}
+                      onClick={() => handleCreateTugas(true)}
+                      className="px-6 py-3 bg-gray-600 text-white rounded-xl font-medium hover:bg-gray-700 transition"
+                    >
+                      Simpan Draft
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowCreateModal(false)
+                        setErrors({})
+                      }}
                       className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition"
                     >
                       Batal
