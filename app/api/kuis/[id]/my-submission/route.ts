@@ -3,9 +3,10 @@ import prisma from '@/lib/prisma'
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const { searchParams } = new URL(req.url)
     const siswaId = searchParams.get('siswaId')
 
@@ -18,7 +19,7 @@ export async function GET(
 
     const submission = await prisma.hasilKuis.findFirst({
       where: {
-        kuisId: params.id,
+        kuisId: id,
         siswaId: siswaId
       }
     })

@@ -3,9 +3,10 @@ import prisma from '@/lib/prisma'
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const { siswaId, videoUrl, catatan } = await req.json()
 
     if (!siswaId) {
@@ -25,7 +26,7 @@ export async function POST(
     // Check if already submitted
     const existingSubmission = await prisma.hasilKuis.findFirst({
       where: {
-        kuisId: params.id,
+        kuisId: id,
         siswaId: siswaId
       }
     })
@@ -39,7 +40,7 @@ export async function POST(
 
     // Check tugas exists and is active
     const tugas = await prisma.kuis.findUnique({
-      where: { id: params.id }
+      where: { id: id }
     })
 
     if (!tugas) {
@@ -67,7 +68,7 @@ export async function POST(
     // Create submission
     const submission = await prisma.hasilKuis.create({
       data: {
-        kuisId: params.id,
+        kuisId: id,
         siswaId: siswaId,
         skorMaksimal: 100,
         videoUrl,

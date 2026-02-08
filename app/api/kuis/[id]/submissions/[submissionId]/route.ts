@@ -3,9 +3,10 @@ import prisma from '@/lib/prisma'
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string; submissionId: string } }
+  { params }: { params: Promise<{ id: string; submissionId: string }> }
 ) {
   try {
+    const { submissionId } = await params
 
     const { nilai, catatan } = await req.json()
 
@@ -18,7 +19,7 @@ export async function PATCH(
 
     const submission = await prisma.hasilKuis.update({
       where: {
-        id: params.submissionId
+        id: submissionId
       },
       data: {
         nilai,

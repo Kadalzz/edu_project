@@ -3,13 +3,14 @@ import prisma from '@/lib/prisma'
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     // Get all submissions for this tugas
     const submissions = await prisma.hasilKuis.findMany({
       where: {
-        kuisId: params.id
+        kuisId: id
       },
       include: {
         siswa: {
