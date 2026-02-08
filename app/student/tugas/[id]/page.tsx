@@ -54,7 +54,8 @@ function KerjakanTugasContent() {
   const params = useParams()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const studentId = searchParams.get('studentId')
+  const studentIdFromUrl = searchParams.get('studentId')
+  const [studentId, setStudentId] = useState<string | null>(studentIdFromUrl)
   const [tugas, setTugas] = useState<Tugas | null>(null)
   const [hasilTugas, setHasilTugas] = useState<HasilTugas | null>(null)
   const [mySubmission, setMySubmission] = useState<MySubmission | null>(null)
@@ -68,8 +69,44 @@ function KerjakanTugasContent() {
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null)
   const [timeDisplay, setTimeDisplay] = useState<string>('')
 
+  // Get studentId from URL or localStorage or API
   useEffect(() => {
-    fetchTugasDetail()
+    const getStudentId = async () => {
+      // Priority: URL > localStorage > API
+      if (studentIdFromUrl) {
+        setStudentId(studentIdFromUrl)
+        localStorage.setItem('eduspecial_studentId', studentIdFromUrl)
+        return
+      }
+      
+      // Check localStorage
+      const storedStudentId = localStorage.getItem('eduspecial_studentId')
+      if (storedStudentId) {
+        setStudentId(storedStudentId)
+        return
+      }
+      
+      // Try to get from parent's children API
+      try {
+        const response = await fetch('/api/parent/children')
+        const result = await response.json()
+        if (result.success && result.data && result.data.length > 0) {
+          const firstChildId = result.data[0].id
+          setStudentId(firstChildId)
+          localStorage.setItem('eduspecial_studentId', firstChildId)
+        }
+      } catch (error) {
+        console.error('Error getting student ID:', error)
+      }
+    }
+    
+    getStudentId()
+  }, [studentIdFromUrl])
+
+  useEffect(() => {
+    if (studentId) {
+      fetchTugasDetail()
+    }
   }, [params.id, studentId])
 
   // Timer for LIVE mode

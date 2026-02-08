@@ -8,13 +8,42 @@ import { useRouter, useSearchParams } from "next/navigation"
 function StudentTugasContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const studentId = searchParams.get('studentId')
+  const studentIdFromUrl = searchParams.get('studentId')
+  const [studentId, setStudentId] = useState<string | null>(studentIdFromUrl)
   const [tugas, setTugas] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
+  // Get studentId from URL or localStorage or API
   useEffect(() => {
+    const getStudentId = async () => {
+      if (studentIdFromUrl) {
+        setStudentId(studentIdFromUrl)
+        localStorage.setItem('eduspecial_studentId', studentIdFromUrl)
+        return
+      }
+      
+      const storedStudentId = localStorage.getItem('eduspecial_studentId')
+      if (storedStudentId) {
+        setStudentId(storedStudentId)
+        return
+      }
+      
+      try {
+        const response = await fetch('/api/parent/children')
+        const result = await response.json()
+        if (result.success && result.data && result.data.length > 0) {
+          const firstChildId = result.data[0].id
+          setStudentId(firstChildId)
+          localStorage.setItem('eduspecial_studentId', firstChildId)
+        }
+      } catch (error) {
+        console.error('Error getting student ID:', error)
+      }
+    }
+    
+    getStudentId()
     fetchTugas()
-  }, [])
+  }, [studentIdFromUrl])
 
   const fetchTugas = async () => {
     try {
