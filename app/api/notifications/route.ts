@@ -1,22 +1,16 @@
 import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
+import { requireAuth } from '@/lib/auth'
 
-// GET - Get all notifications for a user
+// GET - Get all notifications for authenticated user
 export async function GET(request: Request) {
   try {
+    const user = await requireAuth()
     const { searchParams } = new URL(request.url)
-    const userId = searchParams.get("userId")
     const isRead = searchParams.get("isRead")
     const limit = searchParams.get("limit")
 
-    if (!userId) {
-      return NextResponse.json(
-        { success: false, error: "userId is required" },
-        { status: 400 }
-      )
-    }
-
-    const where: any = { userId }
+    const where: any = { userId: user.userId }
 
     if (isRead !== null && isRead !== undefined) {
       where.isRead = isRead === "true"
@@ -31,7 +25,7 @@ export async function GET(request: Request) {
     // Get unread count
     const unreadCount = await prisma.notification.count({
       where: {
-        userId,
+        userId: user.userId,
         isRead: false
       }
     })
@@ -41,8 +35,14 @@ export async function GET(request: Request) {
       data: notifications,
       unreadCount
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error fetching notifications:", error)
+    if (error.message === 'Unauthorized') {
+      return NextResponse.json(
+        { success: false, error: error.message },
+        { status: 401 }
+      )
+    }
     return NextResponse.json(
       { success: false, error: "Failed to fetch notifications" },
       { status: 500 }

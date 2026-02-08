@@ -67,9 +67,12 @@ export async function GET(request: Request) {
 // POST - Create new material
 export async function POST(request: Request) {
   try {
+    // Require GURU role
+    const { getAuthGuru, logActivity } = await import('@/lib/auth')
+    const guru = await getAuthGuru()
+
     const body = await request.json()
     const {
-      guruId,
       kelasId,
       judul,
       deskripsi,
@@ -80,16 +83,16 @@ export async function POST(request: Request) {
     } = body
 
     // Validate required fields
-    if (!guruId || !judul || !tipeMateri) {
+    if (!judul || !tipeMateri) {
       return NextResponse.json(
-        { success: false, error: "Missing required fields (guruId, judul, tipeMateri)" },
+        { success: false, error: "Missing required fields (judul, tipeMateri)" },
         { status: 400 }
       )
     }
 
     const materi = await prisma.materi.create({
       data: {
-        guruId,
+        guruId: guru.id,
         kelasId,
         judul,
         deskripsi,
@@ -111,6 +114,15 @@ export async function POST(request: Request) {
         kelas: true
       }
     })
+
+    // Log activity
+    await logActivity(
+      guru.userId,
+      'CREATE_MATERI',
+      'Materi',
+      materi.id,
+      `Created materi: ${materi.judul}`
+    )
 
     return NextResponse.json({ success: true, data: materi }, { status: 201 })
   } catch (error) {

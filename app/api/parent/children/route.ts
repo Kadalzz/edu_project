@@ -3,20 +3,14 @@ import prisma from '@/lib/prisma'
 
 export async function GET(request: Request) {
   try {
-    const { searchParams } = new URL(request.url)
-    const parentId = searchParams.get('parentId')
-
-    if (!parentId) {
-      return NextResponse.json(
-        { success: false, error: 'Parent ID is required' },
-        { status: 400 }
-      )
-    }
+    // Require PARENT role
+    const { requireRole } = await import('@/lib/auth')
+    const user = await requireRole(['PARENT'])
 
     // Get all children for this parent with their related data
     const children = await prisma.siswa.findMany({
       where: {
-        parentId: parentId
+        parentId: user.userId
       },
       include: {
         kelas: {
@@ -109,8 +103,16 @@ export async function GET(request: Request) {
       success: true,
       data: transformedChildren
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching children data:', error)
+    
+    if (error.message === 'Unauthorized' || error.message.includes('Forbidden')) {
+      return NextResponse.json(
+        { success: false, error: error.message },
+        { status: 403 }
+      )
+    }
+    
     return NextResponse.json(
       { success: false, error: 'Failed to fetch children data' },
       { status: 500 }

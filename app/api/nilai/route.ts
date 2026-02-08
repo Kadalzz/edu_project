@@ -68,10 +68,13 @@ export async function GET(request: Request) {
 // POST - Create new grade
 export async function POST(request: Request) {
   try {
+    // Require GURU role
+    const { getAuthGuru, logActivity, createNotification } = await import('@/lib/auth')
+    const guru = await getAuthGuru()
+
     const body = await request.json()
     const {
       siswaId,
-      guruId,
       mataPelajaran,
       jenisNilai,
       nilai,
@@ -81,17 +84,30 @@ export async function POST(request: Request) {
     } = body
 
     // Validate required fields
-    if (!siswaId || !guruId || !mataPelajaran || !jenisNilai || nilai === undefined) {
+    if (!siswaId || !mataPelajaran || !jenisNilai || nilai === undefined) {
       return NextResponse.json(
-        { success: false, error: "Missing required fields (siswaId, guruId, mataPelajaran, jenisNilai, nilai)" },
+        { success: false, error: "Missing required fields (siswaId, mataPelajaran, jenisNilai, nilai)" },
         { status: 400 }
+      )
+    }
+
+    // Get siswa info including parent
+    const siswa = await prisma.siswa.findUnique({
+      where: { id: siswaId },
+      include: { parent: true }
+    })
+
+    if (!siswa) {
+      return NextResponse.json(
+        { success: false, error: "Siswa not found" },
+        { status: 404 }
       )
     }
 
     const nilaiRecord = await prisma.nilai.create({
       data: {
         siswaId,
-        guruId,
+        guruId: guru.id,
         mataPelajaran,
         jenisNilai,
         nilai: parseFloat(nilai),
@@ -116,6 +132,24 @@ export async function POST(request: Request) {
         }
       }
     })
+
+    // Create notification for parent
+    await createNotification(
+      siswa.parentId,
+      'Nilai Baru',
+      `${siswa.nama} mendapat nilai ${nilai} untuk ${mataPelajaran} (${jenisNilai})`,
+      'info',
+      `/parent/anak-saya`
+    )
+
+    // Log activity
+    await logActivity(
+      guru.userId,
+      'CREATE_NILAI',
+      'Nilai',
+      nilaiRecord.id,
+      `Created nilai for ${siswa.nama}: ${nilai}/${nilaiMaksimal || 100}`
+    )
 
     return NextResponse.json({ success: true, data: nilaiRecord }, { status: 201 })
   } catch (error) {

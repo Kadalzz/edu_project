@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,99 +7,71 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ============================================
-// USER & AUTHENTICATION
-// ============================================
-
-enum UserRole {
-  ADMIN
-  GURU
-  PARENT
-}
-
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  role      UserRole
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  guru           Guru?
-  siswaChildren  Siswa[]               @relation("ParentToSiswa")
+  id             String                @id @default(cuid())
+  email          String                @unique
+  password       String
+  role           UserRole
+  name           String
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+  activityLogs   ActivityLog[]
   chatsSent      Chat[]                @relation("ChatFrom")
   chatsReceived  Chat[]                @relation("ChatTo")
-  notifications  Notification[]
+  guru           Guru?
   laporanBelajar LaporanBelajarRumah[]
-  activityLogs   ActivityLog[]
+  notifications  Notification[]
+  siswaChildren  Siswa[]               @relation("ParentToSiswa")
 
   @@map("users")
 }
 
-// ============================================
-// GURU (TEACHER)
-// ============================================
-
 model Guru {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  nip       String?  @unique
-  phone     String?
-  address   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  kelas           Kelas[]
-  nilai           Nilai[]
-  tugas           Tugas[]
-  progressReports ProgressReport[]
-  jadwalTemu      JadwalTemu[]
-  materi          Materi[]
+  id              String           @id @default(cuid())
+  userId          String           @unique
+  nip             String?          @unique
+  phone           String?
+  address         String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
   badges          Badge[]
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jadwalTemu      JadwalTemu[]
+  kelas           Kelas[]
+  tugas           Tugas[]
+  materi          Materi[]
+  nilai           Nilai[]
+  progressReports ProgressReport[]
 
   @@map("guru")
 }
 
-// ============================================
-// SISWA (STUDENT)
-// ============================================
-
 model Siswa {
-  id              String    @id @default(cuid())
+  id              String                @id @default(cuid())
   nama            String
-  nis             String?   @unique
+  nis             String?               @unique
   kelasId         String
   parentId        String
-  pinCode         String?   @unique
+  pinCode         String?               @unique
   qrCode          String?
   tanggalLahir    DateTime?
   jenisKelamin    String?
   kebutuhanKhusus String?
-  catatan         String?   @db.Text
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-
-  // Relations
-  kelas           Kelas                 @relation(fields: [kelasId], references: [id])
-  parent          User                  @relation("ParentToSiswa", fields: [parentId], references: [id])
-  nilai           Nilai[]
-  hasilTugas      HasilTugas[]
-  progressReports ProgressReport[]
-  laporanBelajar  LaporanBelajarRumah[]
+  catatan         String?
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
   absensi         Absensi[]
   badges          Badge[]
+  hasilTugas      HasilTugas[]
   jadwalTemu      JadwalTemu[]
+  laporanBelajar  LaporanBelajarRumah[]
+  nilai           Nilai[]
+  progressReports ProgressReport[]
+  kelas           Kelas                 @relation(fields: [kelasId], references: [id])
+  parent          User                  @relation("ParentToSiswa", fields: [parentId], references: [id])
 
   @@map("siswa")
 }
-
-// ============================================
-// KELAS (CLASS)
-// ============================================
 
 model Kelas {
   id          String   @id @default(cuid())
@@ -110,97 +79,70 @@ model Kelas {
   tingkat     String?
   tahunAjaran String
   guruId      String
-  deskripsi   String?  @db.Text
+  deskripsi   String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
-  // Relations
-  guru   Guru     @relation(fields: [guruId], references: [id])
-  siswa  Siswa[]
-  tugas  Tugas[]
-  materi Materi[]
+  guru        Guru     @relation(fields: [guruId], references: [id])
+  tugas       Tugas[]
+  materi      Materi[]
+  siswa       Siswa[]
 
   @@map("kelas")
 }
-
-// ============================================
-// NILAI (GRADES)
-// ============================================
 
 model Nilai {
   id            String   @id @default(cuid())
   siswaId       String
   guruId        String
   mataPelajaran String
-  jenisNilai    String // tugas, ujian, sikap, kuis
+  jenisNilai    String
   nilai         Float
   nilaiMaksimal Float    @default(100)
-  catatan       String?  @db.Text
+  catatan       String?
   tanggal       DateTime @default(now())
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-
-  // Relations
-  siswa Siswa @relation(fields: [siswaId], references: [id], onDelete: Cascade)
-  guru  Guru  @relation(fields: [guruId], references: [id])
+  guru          Guru     @relation(fields: [guruId], references: [id])
+  siswa         Siswa    @relation(fields: [siswaId], references: [id], onDelete: Cascade)
 
   @@map("nilai")
 }
 
-// ============================================
-// TUGAS (ASSIGNMENT)
-// ============================================
-
-enum KuisMode {
-  LIVE
-  HOMEWORK
-}
-
-enum KuisStatus {
-  DRAFT
-  ACTIVE
-  CLOSED
-}
-
 model Tugas {
-  id            String     @id @default(cuid())
+  id            String       @id @default(cuid())
   guruId        String
   kelasId       String?
   judul         String
-  deskripsi     String?    @db.Text
+  deskripsi     String?
   mode          KuisMode
-  status        KuisStatus @default(DRAFT)
-  pinCode       String?    @unique
-  durasi        Int? // dalam menit
+  status        KuisStatus   @default(DRAFT)
+  pinCode       String?      @unique
+  durasi        Int?
   deadline      DateTime?
-  tanggalTampil DateTime? // Kapan tugas mulai ditampilkan ke siswa
   mataPelajaran String?
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-
-  // Relations
-  guru       Guru         @relation(fields: [guruId], references: [id])
-  kelas      Kelas?       @relation(fields: [kelasId], references: [id])
-  pertanyaan Pertanyaan[]
-  hasilTugas HasilTugas[]
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  tanggalTampil DateTime?
+  hasilTugas    HasilTugas[]
+  guru          Guru         @relation(fields: [guruId], references: [id])
+  kelas         Kelas?       @relation(fields: [kelasId], references: [id])
+  pertanyaan    Pertanyaan[]
 
   @@map("kuis")
 }
 
 model Pertanyaan {
-  id           String   @id @default(cuid())
-  tugasId      String   @map("kuisId")
-  soal         String   @db.Text
-  tipeJawaban  String // multiple_choice, essay, true_false
-  pilihan      Json? // array of choices for multiple choice
-  jawabanBenar String? // untuk auto-grading
-  poin         Int      @default(10)
+  id           String    @id @default(cuid())
+  tugasId      String    @map("kuisId")
+  soal         String
+  tipeJawaban  String
+  pilihan      Json?
+  jawabanBenar String?
+  poin         Int       @default(10)
   urutan       Int
-  createdAt    DateTime @default(now())
-
-  // Relations
-  tugas   Tugas     @relation(fields: [tugasId], references: [id], onDelete: Cascade)
-  jawaban Jawaban[]
+  createdAt    DateTime  @default(now())
+  jawaban      Jawaban[]
+  tugas        Tugas     @relation(fields: [tugasId], references: [id], onDelete: Cascade)
 
   @@map("pertanyaan")
 }
@@ -214,42 +156,32 @@ model HasilTugas {
   waktuMulai   DateTime  @default(now())
   waktuSelesai DateTime?
   createdAt    DateTime  @default(now())
-
-  // New fields for video submission and grading
-  videoUrl    String?   @db.Text
-  catatan     String?   @db.Text
-  nilai       Float?
-  gradedAt    DateTime?
-  submittedAt DateTime?
-
-  // Relations
-  tugas   Tugas     @relation(fields: [tugasId], references: [id], onDelete: Cascade)
-  siswa   Siswa     @relation(fields: [siswaId], references: [id], onDelete: Cascade)
-  jawaban Jawaban[]
+  catatan      String?
+  gradedAt     DateTime?
+  nilai        Float?
+  submittedAt  DateTime?
+  videoUrl     String?
+  tugas        Tugas     @relation(fields: [tugasId], references: [id], onDelete: Cascade)
+  siswa        Siswa     @relation(fields: [siswaId], references: [id], onDelete: Cascade)
+  jawaban      Jawaban[]
 
   @@unique([tugasId, siswaId])
   @@map("hasil_kuis")
 }
 
 model Jawaban {
-  id           String   @id @default(cuid())
-  hasilTugasId String   @map("hasilKuisId")
+  id           String     @id @default(cuid())
+  hasilTugasId String     @map("hasilKuisId")
   pertanyaanId String
-  jawaban      String   @db.Text
+  jawaban      String
   benar        Boolean?
-  poin         Float    @default(0)
-  createdAt    DateTime @default(now())
-
-  // Relations
-  hasilTugas HasilTugas @relation(fields: [hasilTugasId], references: [id], onDelete: Cascade)
-  pertanyaan Pertanyaan @relation(fields: [pertanyaanId], references: [id], onDelete: Cascade)
+  poin         Float      @default(0)
+  createdAt    DateTime   @default(now())
+  hasilTugas   HasilTugas @relation(fields: [hasilTugasId], references: [id], onDelete: Cascade)
+  pertanyaan   Pertanyaan @relation(fields: [pertanyaanId], references: [id], onDelete: Cascade)
 
   @@map("jawaban")
 }
-
-// ============================================
-// PROGRESS REPORT
-// ============================================
 
 model ProgressReport {
   id           String   @id @default(cuid())
@@ -257,87 +189,60 @@ model ProgressReport {
   guruId       String
   periode      String
   judulLaporan String
-  catatan      String   @db.Text
-  perkembangan Json? // detailed progress data
+  catatan      String
+  perkembangan Json?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-
-  // Relations
-  siswa Siswa @relation(fields: [siswaId], references: [id], onDelete: Cascade)
-  guru  Guru  @relation(fields: [guruId], references: [id])
+  guru         Guru     @relation(fields: [guruId], references: [id])
+  siswa        Siswa    @relation(fields: [siswaId], references: [id], onDelete: Cascade)
 
   @@map("progress_reports")
 }
 
-// ============================================
-// LAPORAN BELAJAR RUMAH
-// ============================================
-
 model LaporanBelajarRumah {
-  id        String   @id @default(cuid())
-  siswaId   String
-  parentId  String
-  tanggal   DateTime @default(now())
-  durasi    Int? // dalam menit
-  materi    String   @db.Text
-  kendala   String?  @db.Text
-  catatan   String?  @db.Text
-  mood      String? // rating semangat belajar
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  siswa       Siswa         @relation(fields: [siswaId], references: [id], onDelete: Cascade)
-  parent      User          @relation(fields: [parentId], references: [id])
+  id          String        @id @default(cuid())
+  siswaId     String
+  parentId    String
+  tanggal     DateTime      @default(now())
+  durasi      Int?
+  materi      String
+  kendala     String?
+  catatan     String?
+  mood        String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
   dokumentasi Dokumentasi[]
+  parent      User          @relation(fields: [parentId], references: [id])
+  siswa       Siswa         @relation(fields: [siswaId], references: [id], onDelete: Cascade)
 
   @@map("laporan_belajar_rumah")
 }
 
 model Dokumentasi {
-  id        String   @id @default(cuid())
+  id        String              @id @default(cuid())
   laporanId String
   fileUrl   String
-  fileType  String // image, video, pdf
+  fileType  String
   fileName  String
   fileSize  Int?
-  createdAt DateTime @default(now())
-
-  // Relations
-  laporan LaporanBelajarRumah @relation(fields: [laporanId], references: [id], onDelete: Cascade)
+  createdAt DateTime            @default(now())
+  laporan   LaporanBelajarRumah @relation(fields: [laporanId], references: [id], onDelete: Cascade)
 
   @@map("dokumentasi")
 }
-
-// ============================================
-// CHAT & COMMUNICATION
-// ============================================
 
 model Chat {
   id         String   @id @default(cuid())
   fromUserId String
   toUserId   String
-  siswaId    String? // context untuk siswa mana
-  message    String   @db.Text
+  siswaId    String?
+  message    String
   isRead     Boolean  @default(false)
   createdAt  DateTime @default(now())
-
-  // Relations
-  fromUser User @relation("ChatFrom", fields: [fromUserId], references: [id])
-  toUser   User @relation("ChatTo", fields: [toUserId], references: [id])
+  fromUser   User     @relation("ChatFrom", fields: [fromUserId], references: [id])
+  toUser     User     @relation("ChatTo", fields: [toUserId], references: [id])
 
   @@map("chats")
-}
-
-// ============================================
-// JADWAL TEMU
-// ============================================
-
-enum StatusJadwal {
-  PENDING
-  APPROVED
-  REJECTED
-  COMPLETED
 }
 
 model JadwalTemu {
@@ -347,46 +252,34 @@ model JadwalTemu {
   siswaId   String
   tanggal   DateTime
   waktu     String
-  topik     String?      @db.Text
-  catatan   String?      @db.Text
+  topik     String?
+  catatan   String?
   status    StatusJadwal @default(PENDING)
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
-
-  // Relations
-  guru  Guru  @relation(fields: [guruId], references: [id])
-  siswa Siswa @relation(fields: [siswaId], references: [id])
+  guru      Guru         @relation(fields: [guruId], references: [id])
+  siswa     Siswa        @relation(fields: [siswaId], references: [id])
 
   @@map("jadwal_temu")
 }
-
-// ============================================
-// MATERI PEMBELAJARAN
-// ============================================
 
 model Materi {
   id            String   @id @default(cuid())
   guruId        String
   kelasId       String?
   judul         String
-  deskripsi     String?  @db.Text
-  tipeMateri    String // pdf, video, link
+  deskripsi     String?
+  tipeMateri    String
   fileUrl       String?
-  konten        String?  @db.Text
+  konten        String?
   mataPelajaran String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-
-  // Relations
-  guru  Guru   @relation(fields: [guruId], references: [id])
-  kelas Kelas? @relation(fields: [kelasId], references: [id])
+  guru          Guru     @relation(fields: [guruId], references: [id])
+  kelas         Kelas?   @relation(fields: [kelasId], references: [id])
 
   @@map("materi")
 }
-
-// ============================================
-// GAMIFIKASI
-// ============================================
 
 model Badge {
   id        String   @id @default(cuid())
@@ -395,25 +288,12 @@ model Badge {
   nama      String
   deskripsi String?
   icon      String?
-  tipe      String // achievement, reward, milestone
+  tipe      String
   earnedAt  DateTime @default(now())
-
-  // Relations
-  siswa Siswa @relation(fields: [siswaId], references: [id], onDelete: Cascade)
-  guru  Guru  @relation(fields: [guruId], references: [id])
+  guru      Guru     @relation(fields: [guruId], references: [id])
+  siswa     Siswa    @relation(fields: [siswaId], references: [id], onDelete: Cascade)
 
   @@map("badges")
-}
-
-// ============================================
-// ABSENSI
-// ============================================
-
-enum StatusAbsensi {
-  HADIR
-  SAKIT
-  IZIN
-  ALPHA
 }
 
 model Absensi {
@@ -421,39 +301,27 @@ model Absensi {
   siswaId    String
   tanggal    DateTime      @default(now())
   status     StatusAbsensi
-  keterangan String?       @db.Text
+  keterangan String?
   waktu      DateTime      @default(now())
   createdAt  DateTime      @default(now())
-
-  // Relations
-  siswa Siswa @relation(fields: [siswaId], references: [id], onDelete: Cascade)
+  siswa      Siswa         @relation(fields: [siswaId], references: [id], onDelete: Cascade)
 
   @@map("absensi")
 }
-
-// ============================================
-// NOTIFICATION
-// ============================================
 
 model Notification {
   id        String   @id @default(cuid())
   userId    String
   title     String
-  content   String   @db.Text
-  type      String // info, warning, success
+  content   String
+  type      String
   link      String?
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
-
-  // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("notifications")
 }
-
-// ============================================
-// ACTIVITY LOG (AUDIT TRAIL)
-// ============================================
 
 model ActivityLog {
   id          String   @id @default(cuid())
@@ -461,12 +329,41 @@ model ActivityLog {
   action      String
   entityType  String?
   entityId    String?
-  description String?  @db.Text
+  description String?
   ipAddress   String?
   createdAt   DateTime @default(now())
-
-  // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("activity_logs")
+}
+
+enum UserRole {
+  ADMIN
+  GURU
+  PARENT
+}
+
+enum KuisMode {
+  LIVE
+  HOMEWORK
+}
+
+enum KuisStatus {
+  DRAFT
+  ACTIVE
+  CLOSED
+}
+
+enum StatusJadwal {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+}
+
+enum StatusAbsensi {
+  HADIR
+  SAKIT
+  IZIN
+  ALPHA
 }

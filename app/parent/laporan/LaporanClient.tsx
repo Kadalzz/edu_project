@@ -1,9 +1,9 @@
 "use client"
 
 import Link from "next/link"
-import { Users, BookOpen, User, FileText, MessageSquare, Calendar, LogOut, ArrowRight, Download, Eye } from "lucide-react"
+import { Users, BookOpen, User, FileText, MessageSquare, Calendar, LogOut, ArrowRight, Download, Eye, Loader2 } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 interface Props {
   userName: string
@@ -13,13 +13,26 @@ interface Props {
 export default function LaporanClient({ userName, userId }: Props) {
   const router = useRouter()
   const [reports, setReports] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
-  // TODO: Fetch reports from API
-  // const fetchReports = async () => {
-  //   const response = await fetch(`/api/parent/reports?parentId=${userId}`)
-  //   const data = await response.json()
-  //   setReports(data)
-  // }
+  useEffect(() => {
+    fetchReports()
+  }, [])
+
+  const fetchReports = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch('/api/parent/laporan')
+      const data = await response.json()
+      if (data.success) {
+        setReports(data.data)
+      }
+    } catch (error) {
+      console.error('Error fetching reports:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleSignOut = async () => {
     try {
@@ -124,7 +137,14 @@ export default function LaporanClient({ userName, userId }: Props) {
             </div>
           ))}
 
-          {reports.length === 0 && (
+          {loading && (
+            <div className="text-center py-12">
+              <Loader2 className="w-16 h-16 text-orange-400 mx-auto mb-4 animate-spin" />
+              <p className="text-gray-500">Memuat laporan...</p>
+            </div>
+          )}
+
+          {!loading && reports.length === 0 && (
             <div className="text-center py-12">
               <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-500">Belum ada laporan tersedia</p>

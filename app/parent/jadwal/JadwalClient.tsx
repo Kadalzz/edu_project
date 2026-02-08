@@ -1,8 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Users, BookOpen, User, FileText, MessageSquare, Calendar, ArrowRight, Clock, MapPin, CheckCircle, XCircle } from "lucide-react"
+import { Users, BookOpen, User, FileText, MessageSquare, Calendar, ArrowRight, Clock, MapPin, CheckCircle, XCircle, Loader2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 interface Props {
@@ -13,13 +13,26 @@ interface Props {
 export default function JadwalClient({ userName, userId }: Props) {
   const router = useRouter()
   const [schedules, setSchedules] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
-  // TODO: Fetch schedules from API
-  // const fetchSchedules = async () => {
-  //   const response = await fetch(`/api/parent/schedules?parentId=${userId}`)
-  //   const data = await response.json()
-  //   setSchedules(data)
-  // }
+  useEffect(() => {
+    fetchSchedules()
+  }, [])
+
+  const fetchSchedules = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch('/api/parent/jadwal')
+      const data = await response.json()
+      if (data.success) {
+        setSchedules(data.data)
+      }
+    } catch (error) {
+      console.error('Error fetching schedules:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-purple-200">
@@ -148,7 +161,14 @@ export default function JadwalClient({ userName, userId }: Props) {
             </div>
           ))}
 
-          {schedules.length === 0 && (
+          {loading && (
+            <div className="text-center py-12">
+              <Loader2 className="w-16 h-16 text-orange-400 mx-auto mb-4 animate-spin" />
+              <p className="text-gray-500">Memuat jadwal...</p>
+            </div>
+          )}
+
+          {!loading && schedules.length === 0 && (
             <div className="text-center py-12">
               <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-500">Belum ada jadwal pertemuan</p>

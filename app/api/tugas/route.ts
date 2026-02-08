@@ -101,6 +101,10 @@ export async function GET(request: Request) {
 // POST - Create new tugas
 export async function POST(request: Request) {
   try {
+    // Check authentication and role
+    const { getAuthGuru, logActivity } = await import('@/lib/auth')
+    const guru = await getAuthGuru()
+
     const body = await request.json()
     const {
       kelasId,
@@ -115,23 +119,33 @@ export async function POST(request: Request) {
       status
     } = body
 
-    // Get guruId from session (you'll need to implement proper auth)
-    // For now, get first guru as fallback
-    const guru = await prisma.guru.findFirst()
-    
-    if (!guru) {
-      return NextResponse.json(
-        { success: false, error: "Guru not found. Please create a teacher account first." },
-        { status: 400 }
-      )
-    }
-
     // Validate required fields
     if (!judul || !mode) {
       return NextResponse.json(
         { success: false, error: "Judul dan mode wajib diisi" },
         { status: 400 }
       )
+    }
+
+    // Validate mode-specific requirements
+    if (mode === 'LIVE' && !durasi) {
+      return NextResponse.json(
+        { success: false, error: "LIVE mode memerlukan durasi" },
+        { status: 400 }
+      )
+    }
+
+    if (mode === 'HOMEWORK' && !deadline) {
+      return NextResponse.json(
+        { success: false, error: "HOMEWORK mode memerlukan deadline" },
+        { status: 400 }
+      )
+    }
+
+    // Generate PIN for LIVE mode
+    let pinCode = null
+    if (mode === 'LIVE') {
+      pinCode = Math.floor(100000 + Math.random() * 900000).toString()
     }
 
     const tugas = await prisma.tugas.create({
@@ -141,11 +155,12 @@ export async function POST(request: Request) {
         judul,
         deskripsi,
         mode,
-        status: status || "ACTIVE",
+        status: status || (mode === 'LIVE' ? 'DRAFT' : 'ACTIVE'),
         durasi,
         deadline: deadline ? new Date(deadline) : null,
         tanggalTampil: tanggalTampil ? new Date(tanggalTampil) : null,
         mataPelajaran,
+        pinCode,
         pertanyaan: pertanyaan ? {
           create: pertanyaan.map((p: any, index: number) => ({
             soal: p.soal,
@@ -171,6 +186,15 @@ export async function POST(request: Request) {
         kelas: true
       }
     })
+
+    // Log activity
+    await logActivity(
+      guru.userId,
+      'CREATE_TUGAS',
+      'Tugas',
+      tugas.id,
+      `Created tugas: ${tugas.judul}`
+    )
 
     return NextResponse.json({ success: true, data: tugas }, { status: 201 })
   } catch (error) {

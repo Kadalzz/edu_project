@@ -101,35 +101,40 @@ export async function GET(request: Request) {
 // POST - Send new message
 export async function POST(request: Request) {
   try {
+    // Require authentication
+    const { requireAuth, logActivity, createNotification } = await import('@/lib/auth')
+    const authUser = await requireAuth()
+
     const body = await request.json()
-    const { fromUserId, toUserId, message } = body
+    const { toUserId, message, siswaId } = body
 
     // Validate required fields
-    if (!fromUserId || !toUserId || !message) {
+    if (!toUserId || !message) {
       return NextResponse.json(
-        { success: false, error: "Missing required fields (fromUserId, toUserId, message)" },
+        { success: false, error: "Missing required fields (toUserId, message)" },
         { status: 400 }
       )
     }
 
-    // Check if users exist
-    const [fromUser, toUser] = await Promise.all([
-      prisma.user.findUnique({ where: { id: fromUserId } }),
-      prisma.user.findUnique({ where: { id: toUserId } })
-    ])
+    // Check if recipient exists
+    const toUser = await prisma.user.findUnique({ 
+      where: { id: toUserId },
+      select: { id: true, name: true, email: true, role: true }
+    })
 
-    if (!fromUser || !toUser) {
+    if (!toUser) {
       return NextResponse.json(
-        { success: false, error: "One or both users not found" },
+        { success: false, error: "Recipient not found" },
         { status: 404 }
       )
     }
 
     const chat = await prisma.chat.create({
       data: {
-        fromUserId,
+        fromUserId: authUser.userId,
         toUserId,
         message,
+        siswaId,
         isRead: false
       },
       include: {
@@ -151,6 +156,24 @@ export async function POST(request: Request) {
         }
       }
     })
+
+    // Create notification for recipient
+    await createNotification(
+      toUserId,
+      'Pesan Baru',
+      `Pesan baru dari ${authUser.name}`,
+      'info',
+      `/chat?userId=${authUser.userId}`
+    )
+
+    // Log activity
+    await logActivity(
+      authUser.userId,
+      'SEND_MESSAGE',
+      'Chat',
+      chat.id,
+      `Sent message to ${toUser.name}`
+    )
 
     return NextResponse.json({ success: true, data: chat }, { status: 201 })
   } catch (error) {
