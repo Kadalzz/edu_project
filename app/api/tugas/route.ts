@@ -152,12 +152,6 @@ export async function POST(request: Request) {
       )
     }
 
-    // Generate PIN for LIVE mode
-    let pinCode = null
-    if (mode === 'LIVE') {
-      pinCode = Math.floor(100000 + Math.random() * 900000).toString()
-    }
-
     const tugas = await prisma.tugas.create({
       data: {
         guruId: guru.id,
@@ -170,7 +164,6 @@ export async function POST(request: Request) {
         deadline: deadline ? new Date(deadline) : null,
         tanggalTampil: tanggalTampil ? new Date(tanggalTampil) : null,
         mataPelajaran,
-        pinCode,
         pertanyaan: pertanyaan ? {
           create: pertanyaan.map((p: any, index: number) => ({
             soal: p.soal,

@@ -137,19 +137,13 @@ function KerjakanTugasContent() {
       return
     }
 
-    if (tugas?.mode === 'LIVE' && !pinCode) {
-      alert('Mohon masukkan PIN terlebih dahulu')
-      return
-    }
-
     try {
       setStarting(true)
       const response = await fetch(`/api/tugas/${params.id}/start`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          siswaId: studentId,
-          pinCode: tugas?.mode === 'LIVE' ? pinCode : undefined
+          siswaId: studentId
         })
       })
 
@@ -438,31 +432,11 @@ function KerjakanTugasContent() {
                 <div className="p-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl">
                   <h3 className="text-lg font-bold text-gray-800 mb-4">Siap Memulai?</h3>
                   
-                  {tugas?.mode === 'LIVE' && (
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Masukkan PIN untuk join LIVE session:
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="000000"
-                        value={pinCode}
-                        onChange={(e) => setPinCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                        maxLength={6}
-                        className="w-full px-4 py-3 border-2 border-purple-300 rounded-xl text-center text-2xl font-bold tracking-widest focus:border-purple-500 focus:outline-none"
-                        disabled={starting}
-                      />
-                      <p className="text-xs text-gray-500 mt-2 text-center">
-                        Tanyakan PIN kepada guru Anda
-                      </p>
-                    </div>
-                  )}
-
                   <button
                     onClick={handleStartTugas}
-                    disabled={starting || (tugas?.mode === 'LIVE' && pinCode.length !== 6)}
+                    disabled={starting}
                     className={`w-full py-4 rounded-2xl font-bold text-lg transition flex items-center justify-center gap-2 ${
-                      starting || (tugas?.mode === 'LIVE' && pinCode.length !== 6)
+                      starting
                         ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                         : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:shadow-2xl'
                     }`}
@@ -475,7 +449,7 @@ function KerjakanTugasContent() {
                     ) : (
                       <>
                         <Play className="w-5 h-5" />
-                        {tugas?.mode === 'LIVE' ? 'Join LIVE Session' : 'Mulai Mengerjakan'}
+                        Mulai Mengerjakan
                       </>
                     )}
                   </button>

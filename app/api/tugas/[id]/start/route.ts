@@ -43,21 +43,7 @@ export async function POST(
       )
     }
 
-    // For LIVE mode, validate PIN
-    if (tugas.mode === 'LIVE') {
-      if (!pinCode) {
-        return NextResponse.json(
-          { success: false, error: 'PIN code required for LIVE mode' },
-          { status: 400 }
-        )
-      }
-      if (tugas.pinCode !== pinCode) {
-        return NextResponse.json(
-          { success: false, error: 'Invalid PIN code' },
-          { status: 401 }
-        )
-      }
-    }
+    // Note: PIN validation removed - no longer required for LIVE mode
 
     // For HOMEWORK mode, check deadline
     if (tugas.mode === 'HOMEWORK' && tugas.deadline) {
