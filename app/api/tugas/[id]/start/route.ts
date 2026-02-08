@@ -20,6 +20,18 @@ export async function POST(
       )
     }
 
+    // Check if siswa exists
+    const siswa = await prisma.siswa.findUnique({
+      where: { id: siswaId }
+    })
+
+    if (!siswa) {
+      return NextResponse.json(
+        { success: false, error: 'Siswa tidak ditemukan' },
+        { status: 404 }
+      )
+    }
+
     // Get tugas details
     const tugas = await prisma.tugas.findUnique({
       where: { id: tugasId },
@@ -99,10 +111,10 @@ export async function POST(
       },
       message: 'Tugas berhasil dimulai!'
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error starting tugas:', error)
     return NextResponse.json(
-      { success: false, error: 'Internal server error' },
+      { success: false, error: error.message || 'Internal server error' },
       { status: 500 }
     )
   }
