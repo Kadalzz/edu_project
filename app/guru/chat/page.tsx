@@ -191,11 +191,11 @@ export default function ChatPage() {
             </div>
             <span className="font-medium">Daftar Murid</span>
           </Link>
-          <Link href="/guru/kuis" className="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
+          <Link href="/guru/tugas" className="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
             <div className="w-8 h-8 mr-3 bg-gray-100 rounded-lg flex items-center justify-center">
               <ClipboardList className="w-4 h-4 text-gray-600" />
             </div>
-            <span className="font-medium">Kuis & Penilaian</span>
+            <span className="font-medium">Tugas & Penilaian</span>
           </Link>
           <Link href="/guru/materi" className="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
             <div className="w-8 h-8 mr-3 bg-gray-100 rounded-lg flex items-center justify-center">

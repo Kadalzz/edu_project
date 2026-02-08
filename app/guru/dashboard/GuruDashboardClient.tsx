@@ -144,7 +144,7 @@ export default function GuruDashboardClient({ userName }: Props) {
             </div>
             <span className="font-medium">Daftar Murid</span>
           </Link>
-          <Link href="/guru/kuis" className="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
+          <Link href="/guru/tugas" className="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
             <div className="w-8 h-8 mr-3 bg-gray-100 rounded-lg flex items-center justify-center">
               <ClipboardList className="w-4 h-4 text-gray-600" />
             </div>
@@ -362,10 +362,10 @@ export default function GuruDashboardClient({ userName }: Props) {
                     <p className="text-xs text-gray-600 mt-1">Kelola data murid Anda</p>
                   </div>
                 </Link>
-                <Link href="/guru/kuis" className="block">
+                <Link href="/guru/tugas" className="block">
                   <div className="p-4 rounded-xl bg-purple-50 border-l-4 border-purple-500 hover:bg-purple-100 transition">
-                    <p className="text-sm font-semibold text-gray-800">Buat Kuis Baru</p>
-                    <p className="text-xs text-gray-600 mt-1">Tambah kuis & penilaian</p>
+                    <p className="text-sm font-semibold text-gray-800">Buat Tugas Baru</p>
+                    <p className="text-xs text-gray-600 mt-1">Tambah tugas & penilaian</p>
                   </div>
                 </Link>
                 <Link href="/guru/materi" className="block">
