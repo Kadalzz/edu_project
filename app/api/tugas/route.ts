@@ -103,7 +103,17 @@ export async function POST(request: Request) {
   try {
     // Check authentication and role
     const { getAuthGuru, logActivity } = await import('@/lib/auth')
-    const guru = await getAuthGuru()
+    
+    let guru
+    try {
+      guru = await getAuthGuru()
+    } catch (authError: any) {
+      console.error("Auth error:", authError)
+      return NextResponse.json(
+        { success: false, error: authError.message || "Authentication failed" },
+        { status: 401 }
+      )
+    }
 
     const body = await request.json()
     const {
@@ -197,10 +207,10 @@ export async function POST(request: Request) {
     )
 
     return NextResponse.json({ success: true, data: tugas }, { status: 201 })
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error creating tugas:", error)
     return NextResponse.json(
-      { success: false, error: "Failed to create tugas" },
+      { success: false, error: error.message || "Failed to create tugas" },
       { status: 500 }
     )
   }
