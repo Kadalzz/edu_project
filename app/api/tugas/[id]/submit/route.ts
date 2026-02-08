@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
+import { cookies } from 'next/headers'
+import { verify } from 'jsonwebtoken'
 
 export async function POST(
   req: NextRequest,
@@ -7,7 +9,31 @@ export async function POST(
 ) {
   try {
     const { id } = await params
-    const { siswaId, videoUrl, catatan } = await req.json()
+    const { siswaId: bodySiswaId, videoUrl, catatan } = await req.json()
+
+    // Get siswaId from JWT token or request body
+    let siswaId = bodySiswaId
+    
+    if (!siswaId) {
+      // Try to get from JWT token
+      const cookieStore = await cookies()
+      const token = cookieStore.get('auth-token')?.value
+      
+      if (token) {
+        try {
+          const decoded = verify(token, process.env.JWT_SECRET || 'secret-key') as { userId: string }
+          // Find siswa by parentId (User is the parent)
+          const siswa = await prisma.siswa.findFirst({
+            where: { parentId: decoded.userId }
+          })
+          if (siswa) {
+            siswaId = siswa.id
+          }
+        } catch {
+          // Token invalid, continue without siswaId
+        }
+      }
+    }
 
     if (!siswaId) {
       return NextResponse.json(

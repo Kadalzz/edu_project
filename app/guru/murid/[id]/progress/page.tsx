@@ -67,8 +67,8 @@ export default function StudentProgressPage() {
   const hadirCount = student.absensi?.filter((a: any) => a.status === 'hadir').length || 0
   const attendancePercentage = totalAbsensi > 0 ? Math.round((hadirCount / totalAbsensi) * 100) : 100
 
-  const totalKuis = student.hasilKuis?.length || 0
-  const kuisLulus = student.hasilKuis?.filter((k: any) => k.nilai >= 60).length || 0
+  const totalKuis = student.hasilTugas?.length || 0
+  const kuisLulus = student.hasilTugas?.filter((k: any) => k.nilai >= 60).length || 0
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-100 via-blue-100 to-purple-200 p-8">
@@ -181,11 +181,11 @@ export default function StudentProgressPage() {
             </h2>
             {totalKuis > 0 ? (
               <div className="space-y-3">
-                {student.hasilKuis.slice(0, 5).map((hasil: any, idx: number) => (
+                {student.hasilTugas.slice(0, 5).map((hasil: any, idx: number) => (
                   <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
                     <div className="flex-1">
-                      <p className="font-medium text-gray-800">{hasil.kuis?.judul || 'Kuis'}</p>
-                      <p className="text-xs text-gray-500">{hasil.kuis?.mataPelajaran || '-'}</p>
+                      <p className="font-medium text-gray-800">{hasil.tugas?.judul || 'Tugas'}</p>
+                      <p className="text-xs text-gray-500">{hasil.tugas?.mataPelajaran || '-'}</p>
                     </div>
                     <div className={`px-3 py-1 rounded-lg font-bold ${
                       hasil.nilai >= 80 ? 'bg-green-100 text-green-700' :

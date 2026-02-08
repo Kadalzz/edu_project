@@ -17,7 +17,7 @@ interface Tugas {
   createdAt: string
   _count: {
     pertanyaan: number
-    hasilKuis: number
+    hasilTugas: number
   }
 }
 
@@ -180,7 +180,7 @@ export default function DetailTugasPage() {
                   )}
                   <div className="flex items-center gap-2 text-sm text-gray-600">
                     <Users className="w-4 h-4" />
-                    <span>{tugas._count.hasilKuis} siswa mengerjakan</span>
+                    <span>{tugas._count.hasilTugas} siswa mengerjakan</span>
                   </div>
                 </div>
               </div>
