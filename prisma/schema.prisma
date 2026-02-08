@@ -184,12 +184,12 @@ model Tugas {
   pertanyaan Pertanyaan[]
   hasilTugas HasilTugas[]
 
-  @@map("tugas")
+  @@map("kuis")
 }
 
 model Pertanyaan {
   id           String   @id @default(cuid())
-  tugasId      String
+  tugasId      String   @map("kuisId")
   soal         String   @db.Text
   tipeJawaban  String // multiple_choice, essay, true_false
   pilihan      Json? // array of choices for multiple choice
@@ -207,7 +207,7 @@ model Pertanyaan {
 
 model HasilTugas {
   id           String    @id @default(cuid())
-  tugasId      String
+  tugasId      String    @map("kuisId")
   siswaId      String
   skor         Float     @default(0)
   skorMaksimal Float
@@ -228,12 +228,12 @@ model HasilTugas {
   jawaban Jawaban[]
 
   @@unique([tugasId, siswaId])
-  @@map("hasil_tugas")
+  @@map("hasil_kuis")
 }
 
 model Jawaban {
   id           String   @id @default(cuid())
-  hasilTugasId String
+  hasilTugasId String   @map("hasilKuisId")
   pertanyaanId String
   jawaban      String   @db.Text
   benar        Boolean?
