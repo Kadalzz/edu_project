@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { Users, GraduationCap, Settings as SettingsIcon, Bell, LogOut, Search, ArrowLeft, BarChart3 } from "lucide-react"
+import { Users, GraduationCap, Settings as SettingsIcon, Bell, LogOut, Search, ArrowLeft, BarChart3, Shield, Database, Mail, Key, Globe, Clock } from "lucide-react"
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 
@@ -122,25 +122,226 @@ export default function SettingsPage() {
         </header>
 
         {/* Content */}
-        <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-xl p-8">
-          <div className="flex items-center mb-6">
-            <Link href="/admin/dashboard" className="mr-4 p-2 hover:bg-purple-50 rounded-xl transition">
-              <ArrowLeft className="w-5 h-5 text-gray-600" />
-            </Link>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-800">Settings</h1>
-              <p className="text-sm text-gray-500 mt-1">Pengaturan dan konfigurasi sistem</p>
+        <div className="space-y-6">
+          {/* Header */}
+          <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-xl p-6">
+            <div className="flex items-center">
+              <Link href="/admin/dashboard" className="mr-4 p-2 hover:bg-purple-50 rounded-xl transition">
+                <ArrowLeft className="w-5 h-5 text-gray-600" />
+              </Link>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-800">Settings</h1>
+                <p className="text-sm text-gray-500 mt-1">Pengaturan dan konfigurasi sistem</p>
+              </div>
             </div>
           </div>
 
-          <div className="py-20 text-center">
-            <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-purple-100 to-pink-100 rounded-3xl flex items-center justify-center">
-              <SettingsIcon className="w-10 h-10 text-purple-500" />
+          {/* Settings Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* System Settings */}
+            <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-xl p-6">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-purple-100 to-pink-100 rounded-2xl flex items-center justify-center mr-3">
+                  <Shield className="w-6 h-6 text-purple-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-800">Keamanan Sistem</h3>
+                  <p className="text-xs text-gray-500">Kelola keamanan dan akses</p>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Two-Factor Authentication</p>
+                    <p className="text-xs text-gray-500">Tingkatkan keamanan akun</p>
+                  </div>
+                  <button className="px-3 py-1 bg-purple-100 text-purple-700 rounded-lg text-xs font-medium hover:bg-purple-200 transition">
+                    Aktifkan
+                  </button>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Session Timeout</p>
+                    <p className="text-xs text-gray-500">Auto logout setelah 30 menit</p>
+                  </div>
+                  <div className="flex items-center">
+                    <input type="checkbox" checked readOnly className="mr-2" />
+                    <span className="text-xs text-green-600 font-medium">Aktif</span>
+                  </div>
+                </div>
+              </div>
             </div>
-            <h2 className="text-xl font-bold text-gray-800 mb-2">Halaman Settings</h2>
-            <p className="text-gray-600 max-w-md mx-auto">
-              Fitur pengaturan untuk konfigurasi sistem dan preferensi akan tersedia segera.
-            </p>
+
+            {/* Database Management */}
+            <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-xl p-6">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-cyan-100 rounded-2xl flex items-center justify-center mr-3">
+                  <Database className="w-6 h-6 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-800">Database</h3>
+                  <p className="text-xs text-gray-500">Backup dan maintenance</p>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <button className="w-full flex items-center justify-between p-3 bg-blue-50 rounded-xl hover:bg-blue-100 transition">
+                  <div className="text-left">
+                    <p className="text-sm font-medium text-gray-700">Backup Database</p>
+                    <p className="text-xs text-gray-500">Terakhir: Belum ada backup</p>
+                  </div>
+                  <span className="text-xs text-blue-600 font-medium">Backup</span>
+                </button>
+                <button className="w-full flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition">
+                  <div className="text-left">
+                    <p className="text-sm font-medium text-gray-700">Optimize Database</p>
+                    <p className="text-xs text-gray-500">Bersihkan data tidak terpakai</p>
+                  </div>
+                  <span className="text-xs text-gray-600 font-medium">Optimize</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Email Settings */}
+            <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-xl p-6">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl flex items-center justify-center mr-3">
+                  <Mail className="w-6 h-6 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-800">Notifikasi Email</h3>
+                  <p className="text-xs text-gray-500">Kelola pengiriman email</p>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Email Notifikasi Guru</p>
+                    <p className="text-xs text-gray-500">Kirim update ke guru</p>
+                  </div>
+                  <input type="checkbox" defaultChecked className="scale-110" />
+                </div>
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Email Notifikasi Orang Tua</p>
+                    <p className="text-xs text-gray-500">Kirim laporan ke orang tua</p>
+                  </div>
+                  <input type="checkbox" defaultChecked className="scale-110" />
+                </div>
+                <button className="w-full p-3 bg-green-50 text-green-700 rounded-xl hover:bg-green-100 transition text-sm font-medium">
+                  Konfigurasi SMTP
+                </button>
+              </div>
+            </div>
+
+            {/* API & Integration */}
+            <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-xl p-6">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-orange-100 to-red-100 rounded-2xl flex items-center justify-center mr-3">
+                  <Key className="w-6 h-6 text-orange-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-800">API & Integration</h3>
+                  <p className="text-xs text-gray-500">Kelola API keys</p>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <div className="p-3 bg-gray-50 rounded-xl">
+                  <p className="text-sm font-medium text-gray-700 mb-2">API Key</p>
+                  <div className="flex items-center gap-2">
+                    <input 
+                      type="text" 
+                      value="••••••••••••••••" 
+                      readOnly 
+                      className="flex-1 px-3 py-2 bg-white rounded-lg text-xs border border-gray-200"
+                    />
+                    <button className="px-3 py-2 bg-orange-100 text-orange-700 rounded-lg text-xs font-medium hover:bg-orange-200 transition">
+                      Generate
+                    </button>
+                  </div>
+                </div>
+                <button className="w-full p-3 bg-orange-50 text-orange-700 rounded-xl hover:bg-orange-100 transition text-sm font-medium">
+                  Dokumentasi API
+                </button>
+              </div>
+            </div>
+
+            {/* General Settings */}
+            <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-xl p-6">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-pink-100 to-rose-100 rounded-2xl flex items-center justify-center mr-3">
+                  <Globe className="w-6 h-6 text-pink-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-800">Pengaturan Umum</h3>
+                  <p className="text-xs text-gray-500">Konfigurasi dasar sistem</p>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <div className="p-3 bg-gray-50 rounded-xl">
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">Nama Sekolah</label>
+                  <input 
+                    type="text" 
+                    defaultValue="EDUSPECIAL" 
+                    className="w-full px-3 py-2 bg-white rounded-lg text-sm border border-gray-200 focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+                <div className="p-3 bg-gray-50 rounded-xl">
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">Zona Waktu</label>
+                  <select className="w-full px-3 py-2 bg-white rounded-lg text-sm border border-gray-200 focus:ring-2 focus:ring-purple-500">
+                    <option>WIB (GMT+7)</option>
+                    <option>WITA (GMT+8)</option>
+                    <option>WIT (GMT+9)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* System Info */}
+            <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-xl p-6">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-2xl flex items-center justify-center mr-3">
+                  <Clock className="w-6 h-6 text-indigo-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-800">Informasi Sistem</h3>
+                  <p className="text-xs text-gray-500">Status dan versi</p>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center p-2">
+                  <span className="text-sm text-gray-600">Versi Aplikasi</span>
+                  <span className="text-sm font-medium text-gray-800">v1.0.0</span>
+                </div>
+                <div className="flex justify-between items-center p-2">
+                  <span className="text-sm text-gray-600">Database Status</span>
+                  <span className="inline-flex items-center px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                    <span className="w-2 h-2 bg-green-500 rounded-full mr-1"></span>
+                    Connected
+                  </span>
+                </div>
+                <div className="flex justify-between items-center p-2">
+                  <span className="text-sm text-gray-600">Last Updated</span>
+                  <span className="text-sm font-medium text-gray-800">8 Feb 2026</span>
+                </div>
+                <div className="flex justify-between items-center p-2">
+                  <span className="text-sm text-gray-600">Environment</span>
+                  <span className="text-sm font-medium text-gray-800">Production</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Save Button */}
+          <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-xl p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Perubahan akan disimpan secara otomatis</p>
+                <p className="text-xs text-gray-500 mt-1">Terakhir disimpan: Baru saja</p>
+              </div>
+              <button className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl hover:from-purple-600 hover:to-pink-600 transition font-medium shadow-lg">
+                Simpan Semua Perubahan
+              </button>
+            </div>
           </div>
         </div>
       </main>

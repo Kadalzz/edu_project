@@ -16,6 +16,7 @@ interface User {
     kelas: Array<{ nama: string }>
   } | null
   siswaChildren: Array<{
+    id: string
     nama: string
     nis: string | null
   }>
@@ -170,6 +171,30 @@ export default function UserManagementClient({ userName }: Props) {
     }
   }
 
+  const handleDeleteStudent = async (studentId: string, studentName: string, parentName: string) => {
+    if (!confirm(`Apakah Anda yakin ingin menghapus anak "${studentName}" dari orang tua "${parentName}"?\n\nPeringatan: Semua data terkait siswa ini (nilai, kuis, absensi, dll) akan terhapus permanen.`)) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/siswa/${studentId}`, {
+        method: 'DELETE'
+      })
+
+      const result = await response.json()
+
+      if (response.ok) {
+        alert('Siswa berhasil dihapus')
+        fetchUsers()
+      } else {
+        alert(result.error || 'Gagal menghapus siswa')
+      }
+    } catch (error) {
+      console.error('Delete student error:', error)
+      alert('Terjadi kesalahan saat menghapus siswa. Silakan coba lagi.')
+    }
+  }
+
   const handleSignOut = async () => {
     try {
       await fetch('/api/auth/signout', { method: 'POST' })
@@ -287,7 +312,20 @@ export default function UserManagementClient({ userName }: Props) {
                       {user.role === 'GURU' && user.guru?.kelas && user.guru.kelas.length > 0 ? (
                         <span>Kelas: {user.guru.kelas.map(k => k.nama).join(', ')}</span>
                       ) : user.role === 'PARENT' && user.siswaChildren.length > 0 ? (
-                        <span>Anak: {user.siswaChildren.map(s => s.nama).join(', ')}</span>
+                        <div className="space-y-1">
+                          {user.siswaChildren.map((child) => (
+                            <div key={child.id} className="flex items-center justify-between bg-orange-50 px-2 py-1 rounded">
+                              <span>Anak: {child.nama}</span>
+                              <button
+                                onClick={() => handleDeleteStudent(child.id, child.nama, user.name)}
+                                className="ml-2 p-1 text-red-600 hover:bg-red-100 rounded transition"
+                                title="Hapus anak"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
                       ) : (
                         <span className="text-gray-400">-</span>
                       )}
